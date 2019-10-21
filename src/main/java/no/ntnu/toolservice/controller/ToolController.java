@@ -50,8 +50,9 @@ public class ToolController {
             try {
                 JSONObject jsonObject = new JSONObject(body);
                 return this.toolService.newTool(new Tool(
-                        jsonObject.getString("toolName"),
-                        jsonObject.getString("toolLocation")
+                        jsonObject.getString("name"),
+                        jsonObject.getString("desc"),
+                        jsonObject.getString("location")
                 ));
             } catch (JSONException je) {
                 je.printStackTrace();
