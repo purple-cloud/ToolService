@@ -11,7 +11,7 @@
 	<groupId>no.ntnu</groupId>
 	<artifactId>toolservice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>toolservice</name>
+	<name>ToolService</name>
 	<description>Backend for Tool Service</description>
 
 	<properties>
@@ -21,7 +21,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 		<!--<dependency>
 			<groupId>org.springframework.boot</groupId>

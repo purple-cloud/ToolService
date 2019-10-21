@@ -7,11 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
 public class ToolService {
 
     private final ToolRepository toolRepository;
@@ -30,9 +28,9 @@ public class ToolService {
     }
 
     public ResponseEntity<String> newTool(Tool tool) {
-        Tool foundTool = this.toolRepository.findByToolId(tool.getToolId());
+        Tool foundTool = this.toolRepository.findToolById(tool.getId());
         if (foundTool == null) {
-            this.toolRepository.save(tool);
+            this.toolRepository.addTool(tool);
             return new ResponseEntity<>("OK", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Tool already exist", HttpStatus.BAD_REQUEST);

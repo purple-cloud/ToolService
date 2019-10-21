@@ -1,12 +1,54 @@
 package no.ntnu.toolservice.repository;
 
 import no.ntnu.toolservice.entity.Tool;
-import org.springframework.data.jpa.repository.JpaRepository;
+import no.ntnu.toolservice.mapper.ToolRowMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-public interface ToolRepository extends JpaRepository<Tool, Long> {
+@Repository
+public class ToolRepository {
 
-    Tool findByToolId(Long toolId);
+    // For creating named queries
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    // For creating basic queries
+    private final JdbcTemplate jdbcTemplate;
+    // Row Mapper
+    private final RowMapper<Tool> rowMapper;
+
+    @Autowired
+    public ToolRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+                          JdbcTemplate jdbcTemplate) {
+        this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
+        this.rowMapper = new ToolRowMapper();
+    }
+
+    public List<Tool> findAll() {
+        return this.jdbcTemplate.query(
+                "SELECT * FROM tool",
+                this.rowMapper
+        );
+    }
+
+    public void addTool(Tool tool) {
+        this.jdbcTemplate.update(
+                "INSERT INTO tool (name, description, location) VALUES (?, ?, ?)",
+                tool.getName(), tool.getDescription(), tool.getLocation()
+        );
+    }
+
+    public Tool findToolById(Long toolId) {
+        return this.namedParameterJdbcTemplate.queryForObject(
+                "SELECT * FROM tool WHERE tool.id = :id",
+                new MapSqlParameterSource("id", toolId),
+                this.rowMapper
+        );
+    }
 
 }
