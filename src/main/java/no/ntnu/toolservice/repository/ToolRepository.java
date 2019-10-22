@@ -31,21 +31,21 @@ public class ToolRepository {
 
     public List<Tool> findAll() {
         return this.jdbcTemplate.query(
-                "SELECT * FROM tool",
+                "SELECT * FROM tools",
                 this.rowMapper
         );
     }
 
     public void addTool(Tool tool) {
         this.jdbcTemplate.update(
-                "INSERT INTO tool (name, description, location) VALUES (?, ?, ?)",
+                "INSERT INTO tools (name, `desc`, location) VALUES (?, ?, ?)",
                 tool.getName(), tool.getDescription(), tool.getLocation()
         );
     }
 
     public Tool findToolById(Long toolId) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM tool WHERE tool.id = :id",
+                "SELECT * FROM tools WHERE tools.tool_id = :id",
                 new MapSqlParameterSource("id", toolId),
                 this.rowMapper
         );
