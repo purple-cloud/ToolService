@@ -19,9 +19,6 @@ public class Tool {
 
     private String location;
 
-    // TODO Change this to be a User later
-    private String borrower;
-
     private Date dateCreated;
 
     private Date expiryDate;
