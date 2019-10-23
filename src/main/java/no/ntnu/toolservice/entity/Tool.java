@@ -46,12 +46,12 @@ public class Tool {
     }
 
     // Constructor for Date date
-    public Tool(@NotNull Long id, @NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location, @NotNull Date dateCreated) {
+    /*public Tool(@NotNull Long id, @NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location, @NotNull Date dateCreated) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.image = image;
         this.location = location;
         this.dateCreated = dateCreated;
-    }
+    }*/
 }

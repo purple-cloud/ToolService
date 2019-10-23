@@ -31,7 +31,7 @@ public class ToolRepository {
 
     public List<Tool> findAll() {
         return this.jdbcTemplate.query(
-                "SELECT * FROM tools",
+                "SELECT * FROM public.tools",
                 this.rowMapper
         );
     }
@@ -46,7 +46,7 @@ public class ToolRepository {
 
     public Tool findToolById(Long toolId) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM tools WHERE tools.tool_id = :id",
+                "SELECT * FROM public.tools WHERE tool_id = :id",
                 new MapSqlParameterSource("id", toolId),
                 this.rowMapper
         );
