@@ -10,12 +10,12 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-public class ToolService {
+public class ResourceService {
 
     private final ToolRepository toolRepository;
 
     @Autowired
-    public ToolService(ToolRepository toolRepository) {
+    public ResourceService(ToolRepository toolRepository) {
         this.toolRepository = toolRepository;
     }
 
