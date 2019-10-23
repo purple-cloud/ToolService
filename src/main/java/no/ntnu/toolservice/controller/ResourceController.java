@@ -12,10 +12,12 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -49,7 +51,7 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/newTool", method = RequestMethod.POST)
+/*    @RequestMapping(value = "/newTool", method = RequestMethod.POST)
     public ResponseEntity<String> newTool(HttpEntity<String> httpEntity) {
         String body = httpEntity.getBody();
         if (body != null) {
@@ -66,6 +68,27 @@ public class ResourceController {
             }
         }
         return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
+    }*/
+
+    @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
+    public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
+                                                   @RequestParam("desc") String desc,
+                                                   @RequestParam("location") String location,
+                                                   @RequestParam("dateCreated") String dateCreated,
+                                                   @RequestParam("file") MultipartFile multipartFile) {
+        // First stores the file in the file system
+        this.storageService.store(multipartFile);
+        try {
+            // Get the file path of the newly added file
+            String filePath = this.storageService.loadAsResource(StringUtils.cleanPath(
+                    multipartFile.getOriginalFilename())).getURL().toString();
+            return this.resourceService.newTool(new Tool(
+               name, desc, filePath, location, dateCreated
+            ));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Error while creating tool", HttpStatus.BAD_REQUEST);
+        }
     }
 
     /*------------------------------
@@ -73,16 +96,16 @@ public class ResourceController {
     ----------------------------*/
 
     // Method for testing file upload
-    @RequestMapping(value = "/fileUpload")
+/*    @RequestMapping(value = "/fileUpload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile multipartFile) {
         return this.storageService.store(multipartFile);
-    }
+    }*/
 
     @RequestMapping(value = "/files/{filename:.+}", method = RequestMethod.POST)
     public ResponseEntity<String> getFile(@PathVariable String filename) {
         Resource file = this.storageService.loadAsResource(filename);
         try {
-            return new ResponseEntity<>(file.getURI().toString(), HttpStatus.OK);
+            return new ResponseEntity<>(file.getURL().toString(), HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("File not found", HttpStatus.BAD_REQUEST);
