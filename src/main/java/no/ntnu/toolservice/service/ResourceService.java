@@ -28,13 +28,8 @@ public class ResourceService {
     }
 
     public ResponseEntity<String> newTool(Tool tool) {
-        Tool foundTool = this.toolRepository.findToolById(tool.getId());
-        if (foundTool == null) {
-            this.toolRepository.addTool(tool);
-            return new ResponseEntity<>("OK", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Tool already exist", HttpStatus.BAD_REQUEST);
-        }
+        this.toolRepository.addTool(tool);
+        return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 
 }

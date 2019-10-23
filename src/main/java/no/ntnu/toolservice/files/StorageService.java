@@ -11,7 +11,7 @@ public interface StorageService {
 
     void init();
 
-    ResponseEntity<String> store(MultipartFile file);
+    void store(MultipartFile file);
 
     Stream<Path> loadAll();
 

@@ -50,15 +50,13 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public ResponseEntity<String> store(MultipartFile file) {
+    public void store(MultipartFile file) {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
-        ResponseEntity<String> response = null;
         try {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file " + filename);
             }
             if (filename.contains("..")) {
-                response = new ResponseEntity<>("Failed to store file", HttpStatus.BAD_REQUEST);
                 // This is a security check
                 throw new StorageException(
                         "Cannot store file with relative path outside current directory "
@@ -67,16 +65,13 @@ public class FileSystemStorageService implements StorageService {
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, this.rootPath.resolve(filename),
                         StandardCopyOption.REPLACE_EXISTING);
-                response = new ResponseEntity<>("File successfully uploaded", HttpStatus.OK);
-            } catch (NoSuchFileException nsfe) {
-                nsfe.printStackTrace();
+            } catch (NoSuchFileException e) {
+                e.printStackTrace();
             }
         }
         catch (IOException e) {
-            response = new ResponseEntity<>("Failed to store file", HttpStatus.BAD_REQUEST);
             throw new StorageException("Failed to store file " + filename, e);
         }
-        return response;
     }
 
     @Override

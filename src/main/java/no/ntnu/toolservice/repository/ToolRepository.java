@@ -37,10 +37,11 @@ public class ToolRepository {
     }
 
     public void addTool(Tool tool) {
-        this.jdbcTemplate.update(
-                "INSERT INTO tools (name, `desc`, location) VALUES (?, ?, ?)",
-                tool.getName(), tool.getDescription(), tool.getLocation()
-        );
+        this.namedParameterJdbcTemplate.update(
+                "INSERT INTO public.tools (name, \"desc\", location, image, date_created) VALUES (:name, :desc, :location, :image, :date_created)",
+                new MapSqlParameterSource().addValue("name", tool.getName())
+                        .addValue("desc", tool.getDescription()).addValue("location", tool.getLocation())
+                        .addValue("image", tool.getImage()).addValue("date_created", tool.getDateCreated()));
     }
 
     public Tool findToolById(Long toolId) {
