@@ -30,10 +30,7 @@ public class ToolRepository {
     }
 
     public List<Tool> findAll() {
-        return this.jdbcTemplate.query(
-                "SELECT * FROM public.tools",
-                this.rowMapper
-        );
+        return this.jdbcTemplate.query("SELECT * FROM public.tools", this.rowMapper);
     }
 
     public void addTool(Tool tool) {
