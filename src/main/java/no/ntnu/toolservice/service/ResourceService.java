@@ -1,7 +1,7 @@
 package no.ntnu.toolservice.service;
 
 import no.ntnu.toolservice.entity.Tool;
-import no.ntnu.toolservice.repository.ToolRepository;
+import no.ntnu.toolservice.repository.ResourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +12,11 @@ import java.util.List;
 @Service
 public class ResourceService {
 
-    private final ToolRepository toolRepository;
+    private final ResourceRepository resourceRepository;
 
     @Autowired
-    public ResourceService(ToolRepository toolRepository) {
-        this.toolRepository = toolRepository;
+    public ResourceService(ResourceRepository resourceRepository) {
+        this.resourceRepository = resourceRepository;
     }
 
     /*------------------------------
@@ -24,11 +24,11 @@ public class ResourceService {
     ----------------------------*/
 
     public List<Tool> getAllTools() {
-        return this.toolRepository.findAll();
+        return this.resourceRepository.findAllTools();
     }
 
     public ResponseEntity<String> newTool(Tool tool) {
-        this.toolRepository.addTool(tool);
+        this.resourceRepository.addTool(tool);
         return new ResponseEntity<>("OK", HttpStatus.OK);
     }
 
