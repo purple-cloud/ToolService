@@ -16,12 +16,12 @@ public class ToolRowMapper implements RowMapper<Tool> {
     @Override
     public Tool mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         return new Tool(
-            resultSet.getLong("tool_id"),
-            resultSet.getString("name"),
-            resultSet.getString("location"),
-            resultSet.getString("desc"),
-            resultSet.getString("image"),
-            resultSet.getDate("date_created")
+                resultSet.getLong("tool_id"),
+                resultSet.getString("name"),
+                resultSet.getString("desc"),
+                resultSet.getString("image"),
+                resultSet.getString("location"),
+                resultSet.getDate("date_created")
         );
     }
 }
