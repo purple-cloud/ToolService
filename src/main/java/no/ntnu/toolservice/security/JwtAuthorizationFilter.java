@@ -1,19 +1,12 @@
 package no.ntnu.toolservice.security;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import no.ntnu.toolservice.entity.Employee;
 import no.ntnu.toolservice.repository.EmployeeRepository;
-import no.ntnu.toolservice.security.UserPrincipal;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -24,8 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.security.Key;
-import io.jsonwebtoken.SignatureException;
-import java.util.Date;
 
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 	private EmployeeRepository eRepo;
