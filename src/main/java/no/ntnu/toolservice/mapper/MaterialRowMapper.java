@@ -16,8 +16,7 @@ public class MaterialRowMapper implements RowMapper<Material> {
                 resultSet.getString("name"),
                 resultSet.getString("location"),
                 resultSet.getString("desc"),
-                resultSet.getString("image"),
-                resultSet.getDate("date_created")
+                resultSet.getString("image")
         );
     }
 

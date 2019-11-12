@@ -71,10 +71,10 @@ public class ResourceRepository {
 
     public void addTool(Tool tool) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.tools (name, \"desc\", location, image, date_created) VALUES (:name, :desc, :location, :image, :date_created)",
+                "INSERT INTO public.tools (name, \"desc\", location, image) VALUES (:name, :desc, :location, :image)",
                 new MapSqlParameterSource().addValue("name", tool.getName())
                         .addValue("desc", tool.getDescription()).addValue("location", tool.getLocation())
-                        .addValue("image", tool.getImage()).addValue("date_created", tool.getDateCreated()));
+                        .addValue("image", tool.getImage()));
     }
 
     public Tool findToolById(Long toolId) {
