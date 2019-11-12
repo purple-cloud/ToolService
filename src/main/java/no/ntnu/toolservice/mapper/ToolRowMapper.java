@@ -20,8 +20,7 @@ public class ToolRowMapper implements RowMapper<Tool> {
                 resultSet.getString("name"),
                 resultSet.getString("desc"),
                 resultSet.getString("image"),
-                resultSet.getString("location"),
-                resultSet.getDate("date_created")
+                resultSet.getString("location")
         );
     }
 }
