@@ -2,6 +2,7 @@ package no.ntnu.toolservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.toolservice.entity.Employee;
 import no.ntnu.toolservice.entity.Project;
 import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.files.StorageService;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.xml.ws.Response;
 import java.util.List;
 
 @RestController
@@ -140,6 +142,24 @@ public class AdministrationController {
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(value = "/findProjectLeaders/{projectId}", method = RequestMethod.POST)
+    public ResponseEntity<String> findAllProjectLeadersInProjectByProjectId(@PathVariable Long projectId) {
+        List<Employee> listOfProjectLeaders = this.projectRepository.findAllProjectLeadersInProjectByProjectId(projectId);
+        ResponseEntity<String> responseEntity;
+        if (listOfProjectLeaders != null) {
+            try {
+                String list = this.objectMapper.writeValueAsString(listOfProjectLeaders);
+                responseEntity = new ResponseEntity<>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                responseEntity = new ResponseEntity<>("Something went wrong while parsing project leaders", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            responseEntity = new ResponseEntity<>("No project leaders for specified project", HttpStatus.BAD_REQUEST);
+        }
+        return responseEntity;
     }
 
     @RequestMapping(value = "/searchProject/{projectName}", method = RequestMethod.POST)

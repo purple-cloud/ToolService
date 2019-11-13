@@ -219,6 +219,24 @@ public class ProjectRepository {
     }
 
     /**
+     * Returns all the project leaders in a specified project
+     *
+     * @param project_id project id of the project we want leaders from
+     * @return all the project leaders in a specified project
+     */
+    public List<Employee> findAllProjectLeadersInProjectByProjectId(Long project_id) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT * FROM employees " +
+                        "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
+                        "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
+                        "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
+                        "WHERE ppl.project_id = :project_id",
+                new MapSqlParameterSource("project_id", project_id),
+                this.employeeRowMapper
+        );
+    }
+
+    /**
      * Returns a list containing projects that includes the specified name
      *
      * @param projectName name of the project to find
