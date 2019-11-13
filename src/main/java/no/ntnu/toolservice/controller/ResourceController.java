@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.files.StorageService;
+import no.ntnu.toolservice.repository.ResourceRepository;
 import no.ntnu.toolservice.service.ResourceService;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,11 +29,16 @@ public class ResourceController {
     private final StorageService storageService;
     private ObjectMapper objectMapper;
 
+    // Repositories
+    private final ResourceRepository resourceRepository;
+
     @Autowired
     public ResourceController(ResourceService resourceService,
-                              StorageService storageService) {
+                              StorageService storageService,
+                              ResourceRepository resourceRepository) {
         this.resourceService = resourceService;
         this.storageService = storageService;
+        this.resourceRepository = resourceRepository;
         // Init ObjectMapper
         this.objectMapper = new ObjectMapper();
     }
@@ -51,30 +58,10 @@ public class ResourceController {
         }
     }
 
-/*    @RequestMapping(value = "/newTool", method = RequestMethod.POST)
-    public ResponseEntity<String> newTool(HttpEntity<String> httpEntity) {
-        String body = httpEntity.getBody();
-        if (body != null) {
-            try {
-                JSONObject jsonObject = new JSONObject(body);
-                return this.resourceService.newTool(new Tool(
-                        jsonObject.getString("name"),
-                        jsonObject.getString("desc"),
-                        jsonObject.getString("location")
-                ));
-            } catch (JSONException je) {
-                je.printStackTrace();
-                return new ResponseEntity<>(je.getMessage(), HttpStatus.BAD_REQUEST);
-            }
-        }
-        return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
-    }*/
-
     @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
     public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
                                                    @RequestParam("desc") String desc,
                                                    @RequestParam("location") String location,
-                                                   @RequestParam("dateCreated") String dateCreated,
                                                    @RequestParam("file") MultipartFile multipartFile) {
         // First stores the file in the file system
         this.storageService.store(multipartFile);
@@ -83,12 +70,30 @@ public class ResourceController {
             String filePath = this.storageService.loadAsResource(StringUtils.cleanPath(
                     multipartFile.getOriginalFilename())).getURL().toString();
             return this.resourceService.newTool(new Tool(
-               name, desc, filePath, location, dateCreated
+               name, desc, filePath, location
             ));
         } catch (IOException e) {
             e.printStackTrace();
             return new ResponseEntity<>("Error while creating tool", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.POST)
+    public ResponseEntity<String> getAllToolsByToolName(@PathVariable String toolName) {
+        List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(toolName);
+        ResponseEntity<String> response;
+        if (listOfTools != null) {
+            try {
+                String list = this.objectMapper.writeValueAsString(listOfTools);
+                response = new ResponseEntity<String>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                response = new ResponseEntity<String>("Something went wrong while parsing tools", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            response = new ResponseEntity<String>("Tools not found", HttpStatus.BAD_REQUEST);
+        }
+        return response;
     }
 
     /*------------------------------

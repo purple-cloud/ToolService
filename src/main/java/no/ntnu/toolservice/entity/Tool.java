@@ -29,20 +29,12 @@ public class Tool {
     @NotEmpty
     private String location;
 
-    @NotNull
-    private Date dateCreated;
-
     // Constructor for stringified date (Used for testing with REST clients)
-    public Tool(@NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location, @NotEmpty String dateCreated) {
-        try {
+    public Tool(@NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location) {
         this.name = name;
         this.description = description;
         this.image = image;
         this.location = location;
-        this.dateCreated = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(dateCreated);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
     }
 
     // Constructor for Date date

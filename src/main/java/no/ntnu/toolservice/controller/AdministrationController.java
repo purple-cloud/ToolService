@@ -3,7 +3,9 @@ package no.ntnu.toolservice.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.entity.Project;
+import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.files.StorageService;
+import no.ntnu.toolservice.repository.ProjectRepository;
 import no.ntnu.toolservice.service.ProjectService;
 import no.ntnu.toolservice.service.ResourceService;
 import org.json.JSONObject;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin(origins = "*")
 public class AdministrationController {
@@ -20,9 +24,14 @@ public class AdministrationController {
     private final ProjectService projectService;
     private ObjectMapper objectMapper;
 
+    // Repository
+    private final ProjectRepository projectRepository;
+
     @Autowired
-    public AdministrationController(ProjectService projectService) {
+    public AdministrationController(ProjectService projectService,
+                                    ProjectRepository projectRepository) {
         this.projectService = projectService;
+        this.projectRepository = projectRepository;
         // Init ObjectMapper
         this.objectMapper = new ObjectMapper();
     }
@@ -31,7 +40,7 @@ public class AdministrationController {
     Project relevant endpoints
     ----------------------------*/
 
-    @RequestMapping(value = "/findAllProjects", method = RequestMethod.POST)
+    @RequestMapping(value = "/findAllProjects", method = RequestMethod.GET)
     public ResponseEntity<String> findAllProjects() {
         try {
             String list = this.objectMapper.writeValueAsString(this.projectService.findAllProjects());
@@ -131,6 +140,24 @@ public class AdministrationController {
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(value = "/searchProject/{projectName}", method = RequestMethod.POST)
+    public ResponseEntity<String> getAllToolsByToolName(@PathVariable String projectName) {
+        List<Project> listOfProjects = this.projectRepository.searchProjectByProjectName(projectName);
+        ResponseEntity<String> response;
+        if (listOfProjects != null) {
+            try {
+                String list = this.objectMapper.writeValueAsString(listOfProjects);
+                response = new ResponseEntity<String>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                response = new ResponseEntity<String>("Something went wrong while parsing projects", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            response = new ResponseEntity<String>("projects not found", HttpStatus.BAD_REQUEST);
+        }
+        return response;
     }
 
 }

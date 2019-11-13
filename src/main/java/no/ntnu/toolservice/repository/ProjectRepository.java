@@ -22,7 +22,7 @@ public class ProjectRepository {
     // For creating basic queries
     private final JdbcTemplate jdbcTemplate;
     // Row Mappers
-    private final RowMapper<Project> projectRowMapperMapper;
+    private final RowMapper<Project> projectRowMapper;
     private final RowMapper<Employee> employeeRowMapper;
 
     @Autowired
@@ -30,7 +30,7 @@ public class ProjectRepository {
                              JdbcTemplate jdbcTemplate) {
         this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
         this.jdbcTemplate = jdbcTemplate;
-        this.projectRowMapperMapper = new ProjectRowMapper();
+        this.projectRowMapper = new ProjectRowMapper();
         this.employeeRowMapper = new EmployeeRowMapper();
     }
 
@@ -44,7 +44,7 @@ public class ProjectRepository {
      * @return a list containing all the projects
      */
     public List<Project> findAll() {
-        return this.jdbcTemplate.query("SELECT * FROM public.projects", this.projectRowMapperMapper);
+        return this.jdbcTemplate.query("SELECT * FROM public.projects", this.projectRowMapper);
     }
 
     /**
@@ -57,7 +57,7 @@ public class ProjectRepository {
         return this.namedParameterJdbcTemplate.queryForObject(
                 "SELECT * FROM public.projects WHERE project_id = :id",
                 new MapSqlParameterSource("id", projectId),
-                this.projectRowMapperMapper
+                this.projectRowMapper
         );
     }
 
@@ -71,7 +71,7 @@ public class ProjectRepository {
         return this.namedParameterJdbcTemplate.queryForObject(
                 "SELECT * FROM public.projects WHERE name = :name",
                 new MapSqlParameterSource("name", projectName),
-                this.projectRowMapperMapper
+                this.projectRowMapper
         );
     }
 
@@ -139,7 +139,7 @@ public class ProjectRepository {
                 "SELECT * FROM projects INNER JOIN project_employees pe on projects.project_id = pe.project_id " +
                         "WHERE pe.employee_id = :employee_id",
                 new MapSqlParameterSource("employee_id", employeeId),
-                this.projectRowMapperMapper
+                this.projectRowMapper
         );
     }
 
@@ -215,6 +215,20 @@ public class ProjectRepository {
                         .addValue("project_id", project_id)
                         .addValue("leader_id", leader_id),
                 this.employeeRowMapper
+        );
+    }
+
+    /**
+     * Returns a list containing projects that includes the specified name
+     *
+     * @param projectName name of the project to find
+     * @return a list containing projects that includes the specified name
+     */
+    public List<Project> searchProjectByProjectName(String projectName) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT * FROM public.projects WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
+                new MapSqlParameterSource("name", projectName),
+                this.projectRowMapper
         );
     }
 
