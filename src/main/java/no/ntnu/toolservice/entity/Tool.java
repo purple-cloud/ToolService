@@ -4,40 +4,46 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data
-@Table
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
 public class Tool {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long toolId;
+    @NotNull
+    private Long id;
 
-    private String toolName;
+    @NotEmpty
+    private String name;
 
-    private String toolLocation;
+    @NotEmpty
+    private String description;
 
-    // TODO Change this to be a User later
-    private String borrower;
+    private String image;
 
-    @Temporal(javax.persistence.TemporalType.DATE)
-    private Date dateCreated;
+    @NotEmpty
+    private String location;
 
-    private Date expiryDate;
-
-    public Tool(String toolName, String toolLocation) {
-        this.toolName = toolName;
-        this.toolLocation = toolLocation;
+    // Constructor for stringified date (Used for testing with REST clients)
+    public Tool(@NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location) {
+        this.name = name;
+        this.description = description;
+        this.image = image;
+        this.location = location;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        dateCreated = new Date();
-    }
-
+    // Constructor for Date date
+    /*public Tool(@NotNull Long id, @NotEmpty String name, @NotEmpty String description, String image, @NotEmpty String location, @NotNull Date dateCreated) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.image = image;
+        this.location = location;
+        this.dateCreated = dateCreated;
+    }*/
 }
