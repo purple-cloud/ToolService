@@ -26,8 +26,9 @@ public class Project {
 
     private String image;
 
-    public Project(@NotEmpty String name, @NotEmpty String location) {
+    public Project(@NotEmpty String name, @NotEmpty String description, @NotEmpty String location) {
         this.name = name;
+        this.description = description;
         this.location = location;
     }
 
