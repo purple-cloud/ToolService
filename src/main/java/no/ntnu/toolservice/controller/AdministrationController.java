@@ -118,6 +118,7 @@ public class AdministrationController {
             JSONObject jsonObject = new JSONObject(body);
             return this.projectService.addNewProject(new Project(
                     jsonObject.getString("name"),
+                    jsonObject.getString("desc"),
                     jsonObject.getString("location")
             ));
         } else {

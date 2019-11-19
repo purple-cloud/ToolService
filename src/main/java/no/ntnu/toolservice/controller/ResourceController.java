@@ -13,13 +13,21 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -66,9 +74,12 @@ public class ResourceController {
         // First stores the file in the file system
         this.storageService.store(multipartFile);
         try {
+            String filename = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+            if (filename.contains(".jpg")) {
+                filename = filename.split("j", 2)[0].concat("png");
+            }
             // Get the file path of the newly added file
-            String filePath = this.storageService.loadAsResource(StringUtils.cleanPath(
-                    multipartFile.getOriginalFilename())).getURL().toString();
+            String filePath = this.storageService.loadAsResource(filename).getURL().toString();
             return this.resourceService.newTool(new Tool(
                name, desc, filePath, location
             ));
@@ -106,14 +117,15 @@ public class ResourceController {
         return this.storageService.store(multipartFile);
     }*/
 
-    @RequestMapping(value = "/files/{filename:.+}", method = RequestMethod.POST)
-    public ResponseEntity<String> getFile(@PathVariable String filename) {
+    @RequestMapping(value = "/files/{filename}", method = RequestMethod.POST, produces = "image/png")
+    public ResponseEntity<byte[]> getFile(@PathVariable String filename) {
         Resource file = this.storageService.loadAsResource(filename);
+        ArrayList<Byte> blist = null;
         try {
-            return new ResponseEntity<>(file.getURL().toString(), HttpStatus.OK);
+            return new ResponseEntity<>(Files.readAllBytes(Paths.get(file.getURI())), HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseEntity<>("File not found", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("", HttpStatus.BAD_REQUEST);
         }
     }
 }
