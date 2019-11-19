@@ -19,57 +19,57 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-	private UserDetailsServiceImpl userDetailsService;
-	private EmployeeRepository employeeRepository;
-	private RolePermissionRepository rolePermissionRepository;
+    private UserDetailsServiceImpl userDetailsService;
+    private EmployeeRepository employeeRepository;
+    private RolePermissionRepository rolePermissionRepository;
 
-	@Autowired
-	public SecurityConfiguration(UserDetailsServiceImpl userDetailsService, EmployeeRepository employeeRepository,
-	                             RolePermissionRepository rolePermissionRepository) {
-		this.userDetailsService = userDetailsService;
-		this.employeeRepository = employeeRepository;
-		this.rolePermissionRepository = rolePermissionRepository;
-	}
+    @Autowired
+    public SecurityConfiguration(UserDetailsServiceImpl userDetailsService, EmployeeRepository employeeRepository,
+                                 RolePermissionRepository rolePermissionRepository) {
+        this.userDetailsService = userDetailsService;
+        this.employeeRepository = employeeRepository;
+        this.rolePermissionRepository = rolePermissionRepository;
+    }
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		auth.authenticationProvider(authenticationProvider());
-	}
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authenticationProvider());
+    }
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-				// Disable unneeded functions
-				.csrf().disable()
-				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-				.and()
-				// Authentication and authorization filters
-				.addFilter(new JwtAuthenticationFilter(authenticationManager()))
-				.addFilter(new JwtAuthorizationFilter(authenticationManager(), employeeRepository))
-				.authorizeRequests()
-				// Secure endpoints
-				.antMatchers("/login").permitAll()
-				.antMatchers("/employees", "/employees/**").hasAuthority("user:view_all")
-				.antMatchers("*").permitAll();
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                // Disable unneeded functions
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                // Authentication and authorization filters
+                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthorizationFilter(authenticationManager(), employeeRepository))
+                .authorizeRequests()
+                // Secure endpoints
+                .antMatchers("/login").permitAll()
+                .antMatchers("/employees", "/employees/**").hasAuthority("user:view_all")
+                .antMatchers("*").permitAll();
 
-	}
+    }
 
-	@Bean
-	PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-	@Bean
-	@Override
-	public UserDetailsService userDetailsService() {
-		return new UserDetailsServiceImpl(employeeRepository);
-	}
+    @Bean
+    @Override
+    public UserDetailsService userDetailsService() {
+        return new UserDetailsServiceImpl(employeeRepository);
+    }
 
-	@Bean
-	DaoAuthenticationProvider authenticationProvider() {
-		DaoAuthenticationProvider dao = new DaoAuthenticationProvider();
-		dao.setPasswordEncoder(passwordEncoder());
-		dao.setUserDetailsService(userDetailsService);
-		return dao;
-	}
+    @Bean
+    DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider dao = new DaoAuthenticationProvider();
+        dao.setPasswordEncoder(passwordEncoder());
+        dao.setUserDetailsService(userDetailsService);
+        return dao;
+    }
 }

@@ -188,12 +188,17 @@ public class ProjectRepository {
     /**
      * Add project leader to a project
      */
-    public void addProjectLeaderToProject(Long leader_id, Long project_id) {
+    public void addProjectLeaderToProject(Long employee_id, Long project_id) {
+        int leaderId = this.namedParameterJdbcTemplate.queryForObject(
+                "SELECT leader_id FROM project_leader WHERE employee_id = :employee_id",
+                new MapSqlParameterSource("employee_id", employee_id),
+                Integer.class
+        );
         this.namedParameterJdbcTemplate.update(
                 "INSERT INTO public.project_project_leader (project_id, leader_id) VALUES (:project_id, :leader_id)",
                 new MapSqlParameterSource()
                         .addValue("project_id", project_id)
-                        .addValue("leader_id", leader_id)
+                        .addValue("leader_id", leaderId)
         );
     }
 
@@ -204,16 +209,16 @@ public class ProjectRepository {
      * @return the employee found that is the
      *         project leader in the specified project
      */
-    public Employee findProjectLeaderInProject(Long leader_id, Long project_id) {
+    public Employee findProjectLeaderInProject(Long employee_id, Long project_id) {
         return this.namedParameterJdbcTemplate.queryForObject(
                 "SELECT * FROM employees " +
                         "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
                         "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
                         "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
-                        "WHERE epl.leader_id = :leader_id AND ppl.project_id = :project_id",
+                        "WHERE epl.employee_id = :employee_id AND ppl.project_id = :project_id",
                 new MapSqlParameterSource()
                         .addValue("project_id", project_id)
-                        .addValue("leader_id", leader_id),
+                        .addValue("employee_id", employee_id),
                 this.employeeRowMapper
         );
     }

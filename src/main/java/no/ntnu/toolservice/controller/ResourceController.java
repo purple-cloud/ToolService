@@ -6,28 +6,19 @@ import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.files.StorageService;
 import no.ntnu.toolservice.repository.ResourceRepository;
 import no.ntnu.toolservice.service.ResourceService;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.support.ServletContextResource;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -81,7 +72,7 @@ public class ResourceController {
             // Get the file path of the newly added file
             String filePath = this.storageService.loadAsResource(filename).getURL().toString();
             return this.resourceService.newTool(new Tool(
-               name, desc, filePath, location
+                    name, desc, filePath, location
             ));
         } catch (IOException e) {
             e.printStackTrace();

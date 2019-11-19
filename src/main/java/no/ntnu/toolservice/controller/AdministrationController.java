@@ -4,11 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.entity.Employee;
 import no.ntnu.toolservice.entity.Project;
-import no.ntnu.toolservice.entity.Tool;
-import no.ntnu.toolservice.files.StorageService;
 import no.ntnu.toolservice.repository.ProjectRepository;
 import no.ntnu.toolservice.service.ProjectService;
-import no.ntnu.toolservice.service.ResourceService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -16,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.xml.ws.Response;
 import java.util.List;
 
 @RestController
@@ -137,7 +133,7 @@ public class AdministrationController {
         if (body != null) {
             JSONObject jsonObject = new JSONObject(body);
             return this.projectService.addProjectLeaderToProject(
-                    jsonObject.getLong("leader_id"),
+                    jsonObject.getLong("employee_id"),
                     jsonObject.getLong("project_id")
             );
         } else {
