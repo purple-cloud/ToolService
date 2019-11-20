@@ -5,6 +5,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,18 +24,17 @@ import java.io.IOException;
 import java.security.Key;
 import java.util.Date;
 
+@PropertySource("classpath:application.properties")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-	private String secret = "keepthissecret";
-	private String issuer = "toolservice";
-	private int tokenTimeout = 30;
-	private String tokenPrefix = "Bearer ";
-
 	private AuthenticationManager authManager;
+	private JWTConfiguration jwtConfig;
 
 	@Autowired
-	public JwtAuthenticationFilter(AuthenticationManager authManager) {
+	public JwtAuthenticationFilter(AuthenticationManager authManager, JWTConfiguration jwtConfig) {
 		this.authManager = authManager;
+		this.jwtConfig = jwtConfig;
 	}
+
 
 	@Override   // Filter for when client tries to login
 	public Authentication attemptAuthentication(HttpServletRequest request,
@@ -65,20 +67,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 		JSONObject employeeJson = new JSONObject(principal.getUser());
 
 		SignatureAlgorithm alg = SignatureAlgorithm.HS512;
-		byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(secret);
+		byte[] apiKeySecretBytes = DatatypeConverter.parseBase64Binary(jwtConfig.getSecret());
 		Key signingKey = new SecretKeySpec(apiKeySecretBytes, alg.getJcaName());
 
 		// Create token
 		String token = Jwts.builder()
-				.setIssuer(issuer)
+				.setIssuer(jwtConfig.getIssuer())
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + (tokenTimeout * 1000)))
+				.setExpiration(new Date(System.currentTimeMillis() + (jwtConfig.getTokenTimeout() * 1000 * 60 * 60)))
 				.setSubject(principal.getUsername())
 				.claim("employee", principal.getUser())
 				.signWith(alg, signingKey)
 				.compact();
 
 		// Add token in response
-		response.addHeader("Authorization", tokenPrefix + token);
+		response.addHeader("Authorization", jwtConfig.getTokenPrefix() + token);
 	}
 }
