@@ -22,13 +22,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private UserDetailsServiceImpl userDetailsService;
     private EmployeeRepository employeeRepository;
     private RolePermissionRepository rolePermissionRepository;
+    private JWTConfiguration jwtConfig;
 
     @Autowired
     public SecurityConfiguration(UserDetailsServiceImpl userDetailsService, EmployeeRepository employeeRepository,
-                                 RolePermissionRepository rolePermissionRepository) {
+                                 RolePermissionRepository rolePermissionRepository, JWTConfiguration jwtConfig) {
         this.userDetailsService = userDetailsService;
         this.employeeRepository = employeeRepository;
         this.rolePermissionRepository = rolePermissionRepository;
+        this.jwtConfig = jwtConfig;
     }
 
     @Override
@@ -44,7 +46,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 // Authentication and authorization filters
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtConfig))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), employeeRepository))
                 .authorizeRequests()
                 // Secure endpoints
