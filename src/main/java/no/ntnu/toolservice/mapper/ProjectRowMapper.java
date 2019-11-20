@@ -20,7 +20,7 @@ public class ProjectRowMapper implements RowMapper<Project> {
                 resultSet.getLong("project_id"),
                 resultSet.getString("name"),
                 resultSet.getString("location"),
-                resultSet.getString("description"),
+                resultSet.getString("desc"),
                 resultSet.getString("image")
         );
     }
