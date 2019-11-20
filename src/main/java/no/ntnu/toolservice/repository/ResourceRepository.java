@@ -34,11 +34,11 @@ public class ResourceRepository {
     }
 
     public List<Tool> findAllTools() {
-        return this.jdbcTemplate.query("SELECT * FROM public.tools", this.toolRowMapper);
+        return this.jdbcTemplate.query("SELECT * FROM tools", this.toolRowMapper);
     }
 
     public List<Material> findAllMaterials() {
-        return this.jdbcTemplate.query("SELECT * FROM public.materials", this.materialRowMapper);
+        return this.jdbcTemplate.query("SELECT * FROM materials", this.materialRowMapper);
     }
 
     /**
@@ -49,7 +49,7 @@ public class ResourceRepository {
      */
     public List<Tool> searchToolsByToolName(String toolName) {
         return this.namedParameterJdbcTemplate.query(
-                "SELECT * FROM public.tools WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
+                "SELECT * FROM tools WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
                 new MapSqlParameterSource("name", toolName),
                 this.toolRowMapper
         );
@@ -63,7 +63,7 @@ public class ResourceRepository {
      */
     public List<Tool> searchMaterialsByToolName(String materialName) {
         return this.namedParameterJdbcTemplate.query(
-                "SELECT * FROM public.materials WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
+                "SELECT * FROM materials WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
                 new MapSqlParameterSource("name", materialName),
                 this.toolRowMapper
         );
@@ -71,7 +71,7 @@ public class ResourceRepository {
 
     public void addTool(Tool tool) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.tools (name, \"desc\", location, image) VALUES (:name, :desc, :location, :image)",
+                "INSERT INTO tools (name, \"desc\", location, image) VALUES (:name, :desc, :location, :image)",
                 new MapSqlParameterSource().addValue("name", tool.getName())
                         .addValue("desc", tool.getDescription()).addValue("location", tool.getLocation())
                         .addValue("image", tool.getImage()));
@@ -79,7 +79,7 @@ public class ResourceRepository {
 
     public Tool findToolById(Long toolId) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM public.tools WHERE tool_id = :id",
+                "SELECT * FROM tools WHERE tool_id = :id",
                 new MapSqlParameterSource("id", toolId),
                 this.toolRowMapper
         );
@@ -93,7 +93,7 @@ public class ResourceRepository {
      */
     public void borrowTool(Long employee_id, Long tool_id) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.borrows (employee_id, tool_id) VALUES (:employee_id, :tool_id)",
+                "INSERT INTO borrows (employee_id, tool_id) VALUES (:employee_id, :tool_id)",
                 new MapSqlParameterSource()
                         .addValue("employee_id", employee_id)
                         .addValue("tool_id", tool_id)
