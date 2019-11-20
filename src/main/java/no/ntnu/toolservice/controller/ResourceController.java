@@ -80,7 +80,7 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.POST)
+    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.GET)
     public ResponseEntity<String> getAllToolsByToolName(@PathVariable String toolName) {
         List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(toolName);
         ResponseEntity<String> response;
