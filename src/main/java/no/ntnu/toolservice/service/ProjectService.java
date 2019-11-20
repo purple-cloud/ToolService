@@ -81,14 +81,23 @@ public class ProjectService {
         }
     }
 
-    public ResponseEntity<String> addProjectLeaderToProject(Long leader_id, Long project_id) {
-        Employee foundLeader = this.projectRepository.findProjectLeaderInProject(leader_id, project_id);
+    public ResponseEntity<String> addProjectLeaderToProject(Long employee_id, Long project_id) {
+        Employee foundLeader = this.projectRepository.findProjectLeaderByEmployeeId(employee_id);
+        ResponseEntity<String> responseEntity;
         if (foundLeader == null) {
-            this.projectRepository.addProjectLeaderToProject(leader_id, project_id);
-            return new ResponseEntity<>("OK", HttpStatus.OK);
+            this.projectRepository.addProjectLeader(employee_id);
+            this.projectRepository.addProjectLeaderToProject(employee_id, project_id);
+            responseEntity =  new ResponseEntity<>("OK", HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Project leader is already assigned to that project", HttpStatus.BAD_REQUEST);
+            foundLeader = this.projectRepository.findProjectLeaderInProject(employee_id, project_id);
+            if (foundLeader != null) {
+                responseEntity = new ResponseEntity<>("Project leader is already assigned to that project", HttpStatus.BAD_REQUEST);
+            } else {
+                this.projectRepository.addProjectLeaderToProject(employee_id, project_id);
+                responseEntity = new ResponseEntity<>("OK", HttpStatus.OK);
+            }
         }
+        return responseEntity;
     }
 
 }
