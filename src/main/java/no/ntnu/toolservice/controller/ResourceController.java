@@ -57,6 +57,15 @@ public class ResourceController {
         }
     }
 
+    @RequestMapping(value = "/getAllUniqueTools", method = RequestMethod.GET)
+    public ResponseEntity getAllToolsUnique() {
+        try {
+            return ResponseEntity.ok(this.objectMapper.writeValueAsString(this.resourceRepository.findAllUniqueTools()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
     public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
                                                    @RequestParam("desc") String desc,
@@ -80,7 +89,7 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.GET)
+    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> getAllToolsByToolName(@PathVariable String toolName) {
         List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(toolName);
         ResponseEntity<String> response;

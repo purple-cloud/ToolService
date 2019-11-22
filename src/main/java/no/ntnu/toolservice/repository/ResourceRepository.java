@@ -116,4 +116,7 @@ public class ResourceRepository {
         );
     }
 
+    public List<Tool> findAllUniqueTools() {
+        return jdbcTemplate.query("SELECT * FROM tools GROUP BY(name)", this.toolRowMapper);
+    }
 }
