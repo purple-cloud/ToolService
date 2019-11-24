@@ -159,7 +159,7 @@ public class AdministrationController {
         return responseEntity;
     }
 
-    @RequestMapping(value = "/searchProject/{projectName}", method = RequestMethod.POST)
+    @RequestMapping(value = "/searchProject/{projectName}", method = RequestMethod.GET)
     public ResponseEntity<String> getAllToolsByToolName(@PathVariable String projectName) {
         List<Project> listOfProjects = this.projectRepository.searchProjectByProjectName(projectName);
         ResponseEntity<String> response;

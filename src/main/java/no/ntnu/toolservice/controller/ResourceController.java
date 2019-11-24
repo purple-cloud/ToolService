@@ -6,14 +6,17 @@ import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.files.StorageService;
 import no.ntnu.toolservice.repository.ResourceRepository;
 import no.ntnu.toolservice.service.ResourceService;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.xml.ws.Response;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,6 +60,15 @@ public class ResourceController {
         }
     }
 
+    @RequestMapping(value = "/getAllUniqueTools", method = RequestMethod.GET)
+    public ResponseEntity getAllToolsUnique() {
+        try {
+            return ResponseEntity.ok(this.objectMapper.writeValueAsString(this.resourceRepository.findAllUniqueTools()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
     public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
                                                    @RequestParam("desc") String desc,
@@ -80,7 +92,7 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.POST)
+    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> getAllToolsByToolName(@PathVariable String toolName) {
         List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(toolName);
         ResponseEntity<String> response;
@@ -96,6 +108,32 @@ public class ResourceController {
             response = new ResponseEntity<String>("Tools not found", HttpStatus.BAD_REQUEST);
         }
         return response;
+    }
+
+    @RequestMapping(value = "/rentTool", method = RequestMethod.POST)
+    public ResponseEntity<String> rentSpecifiedTool(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            this.resourceRepository.borrowTool(
+                    jsonObject.getLong("employee_id"),
+                    jsonObject.getLong("tool_id")
+            );
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/findAllBorrows/{employee_id}", method = RequestMethod.GET)
+    public ResponseEntity<String> getAllBorrows(@PathVariable Long employee_id) {
+        try {
+            String list = this.objectMapper.writeValueAsString(this.resourceRepository.findAllLoansByEmployeeId(employee_id));
+            return new ResponseEntity<>(list, HttpStatus.OK);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Something went wrong while parsing loans", HttpStatus.BAD_REQUEST);
+        }
     }
 
     /*------------------------------

@@ -44,7 +44,7 @@ public class ProjectRepository {
      * @return a list containing all the projects
      */
     public List<Project> findAll() {
-        return this.jdbcTemplate.query("SELECT * FROM public.projects", this.projectRowMapper);
+        return this.jdbcTemplate.query("SELECT * FROM projects", this.projectRowMapper);
     }
 
     /**
@@ -55,7 +55,7 @@ public class ProjectRepository {
      */
     public Project findProjectById(Long projectId) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM public.projects WHERE project_id = :id",
+                "SELECT * FROM projects WHERE project_id = :id",
                 new MapSqlParameterSource("id", projectId),
                 this.projectRowMapper
         );
@@ -69,7 +69,7 @@ public class ProjectRepository {
      */
     public Project findProjectByProjectName(String projectName) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM public.projects WHERE name = :name",
+                "SELECT * FROM projects WHERE name = :name",
                 new MapSqlParameterSource("name", projectName),
                 this.projectRowMapper
         );
@@ -83,7 +83,7 @@ public class ProjectRepository {
      */
     public void addEmployeeToProject(Long employeeId, Long projectId) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.project_employees (employee_id, project_id) " +
+                "INSERT INTO project_employees (employee_id, project_id) " +
                         "VALUES (:employee_id, :project_id)",
                 new MapSqlParameterSource()
                         .addValue("employee_id", employeeId)
@@ -154,7 +154,7 @@ public class ProjectRepository {
      */
     public void addProject(Project project) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.projects (name, location) VALUES (:name, :location)",
+                "INSERT INTO projects (name, location) VALUES (:name, :location)",
                 new MapSqlParameterSource()
                         .addValue("name", project.getName())
                         .addValue("location", project.getLocation())
@@ -166,7 +166,7 @@ public class ProjectRepository {
      */
     public void addProjectLeader(Long employeeId) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.project_leader (employee_id) VALUES (:employee_id)",
+                "INSERT INTO project_leader (employee_id) VALUES (:employee_id)",
                 new MapSqlParameterSource("employee_id", employeeId)
         );
     }
@@ -179,7 +179,7 @@ public class ProjectRepository {
      */
     public Employee findProjectLeaderByEmployeeId(Long employeeId) {
         return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM public.project_leader WHERE employee_id = :employee_id",
+                "SELECT * FROM project_leader WHERE employee_id = :employee_id",
                 new MapSqlParameterSource("employee_id", employeeId),
                 this.employeeRowMapper
         );
@@ -195,7 +195,7 @@ public class ProjectRepository {
                 Integer.class
         );
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO public.project_project_leader (project_id, leader_id) VALUES (:project_id, :leader_id)",
+                "INSERT INTO project_project_leader (project_id, leader_id) VALUES (:project_id, :leader_id)",
                 new MapSqlParameterSource()
                         .addValue("project_id", project_id)
                         .addValue("leader_id", leaderId)
@@ -249,7 +249,7 @@ public class ProjectRepository {
      */
     public List<Project> searchProjectByProjectName(String projectName) {
         return this.namedParameterJdbcTemplate.query(
-                "SELECT * FROM public.projects WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
+                "SELECT * FROM projects WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
                 new MapSqlParameterSource("name", projectName),
                 this.projectRowMapper
         );
