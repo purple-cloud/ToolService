@@ -247,10 +247,29 @@ public class ProjectRepository {
      * @param projectName name of the project to find
      * @return a list containing projects that includes the specified name
      */
-    public List<Project> searchProjectByProjectName(String projectName) {
+    public List<Project> searchProjectByProjectName(String projectName, int employee_id) {
         return this.namedParameterJdbcTemplate.query(
-                "SELECT * FROM projects WHERE LOWER(name) LIKE CONCAT('%', LOWER(:name), '%')",
-                new MapSqlParameterSource("name", projectName),
+                "SELECT * FROM projects " +
+                        "INNER JOIN project_project_leader ON projects.project_id = project_project_leader.project_id " +
+                        "INNER JOIN project_leader ON project_project_leader.leader_id = project_leader.leader_id " +
+                        "INNER JOIN employee_project_leader ON project_leader.leader_id = employee_project_leader.leader_id " +
+                        "INNER JOIN employees ON employee_project_leader.employee_id = employees.employee_id " +
+                        "WHERE employees.employee_id = :employee_id " +
+                        "AND LOWER(projects.name) LIKE CONCAT('%', LOWER(:name), '%')",
+                new MapSqlParameterSource().addValue("name", projectName).addValue("employee_id", employee_id),
+                this.projectRowMapper
+        );
+    }
+
+    public List<Project> getAllProjectsAUserIsLeaderFor(Long employee_id) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT * FROM projects " +
+                        "INNER JOIN project_project_leader ON projects.project_id = project_project_leader.project_id " +
+                        "INNER JOIN project_leader ON project_project_leader.leader_id = project_leader.leader_id " +
+                        "INNER JOIN employee_project_leader ON project_leader.leader_id = employee_project_leader.leader_id " +
+                        "INNER JOIN employees ON employee_project_leader.employee_id = employees.employee_id " +
+                        "WHERE employees.employee_id = :employee_id ",
+                new MapSqlParameterSource("employee_id", employee_id),
                 this.projectRowMapper
         );
     }

@@ -69,6 +69,17 @@ public class ResourceController {
         }
     }
 
+    @RequestMapping(value = "/getAllUniqueToolsByProject/{project_id}", method = RequestMethod.GET)
+    public ResponseEntity<String> getAllToolsByProject(@PathVariable Long project_id) {
+        try {
+            String list = this.objectMapper.writeValueAsString(this.resourceRepository.findAllUniqueToolsByProject(project_id));
+            return new ResponseEntity<>(list, HttpStatus.OK);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Something went wrong while parsing tools", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
     public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
                                                    @RequestParam("desc") String desc,
@@ -92,20 +103,26 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/searchTool/{toolName}", method = RequestMethod.GET, produces = "application/json")
-    public ResponseEntity<String> getAllToolsByToolName(@PathVariable String toolName) {
-        List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(toolName);
+    @RequestMapping(value = "/searchTool", method = RequestMethod.POST, produces = "application/json")
+    public ResponseEntity<String> getAllToolsByToolName(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
         ResponseEntity<String> response;
-        if (listOfTools != null) {
-            try {
-                String list = this.objectMapper.writeValueAsString(listOfTools);
-                response = new ResponseEntity<String>(list, HttpStatus.OK);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                response = new ResponseEntity<String>("Something went wrong while parsing tools", HttpStatus.BAD_REQUEST);
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            List<Tool> listOfTools = this.resourceRepository.searchToolsByToolName(jsonObject.getString("search"), jsonObject.getInt("project_id"));
+            if (listOfTools != null) {
+                try {
+                    String list = this.objectMapper.writeValueAsString(listOfTools);
+                    response = new ResponseEntity<String>(list, HttpStatus.OK);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    response = new ResponseEntity<String>("Something went wrong while parsing tools", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                response = new ResponseEntity<String>("Tools not found", HttpStatus.BAD_REQUEST);
             }
         } else {
-            response = new ResponseEntity<String>("Tools not found", HttpStatus.BAD_REQUEST);
+            response = new ResponseEntity<>("Body can't be null", HttpStatus.BAD_REQUEST);
         }
         return response;
     }

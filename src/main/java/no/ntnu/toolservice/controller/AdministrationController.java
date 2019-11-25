@@ -49,10 +49,10 @@ public class AdministrationController {
         }
     }
 
-    @RequestMapping(value = "/findAllProjectsThatUsesIsIn/{id}", method = RequestMethod.POST)
-    public ResponseEntity<String> findAllProjectsThatEmployeeIsInByEmployeeId(@PathVariable(value = "id") Long employee_id) {
+    @RequestMapping(value = "/findAllProjectsThatUserIsIn/{id}", method = RequestMethod.GET)
+    public ResponseEntity<String> findAllProjectsThatEmployeeIsInByEmployeeId(@PathVariable Long id) {
         try {
-            String list = this.objectMapper.writeValueAsString(this.projectService.findAllProjectsThatEmployeeIsInByEmployeeId(employee_id));
+            String list = this.objectMapper.writeValueAsString(this.projectService.findAllProjectsThatEmployeeIsInByEmployeeId(id));
             return new ResponseEntity<>(list, HttpStatus.OK);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -159,9 +159,33 @@ public class AdministrationController {
         return responseEntity;
     }
 
-    @RequestMapping(value = "/searchProject/{projectName}", method = RequestMethod.GET)
-    public ResponseEntity<String> getAllToolsByToolName(@PathVariable String projectName) {
-        List<Project> listOfProjects = this.projectRepository.searchProjectByProjectName(projectName);
+    @RequestMapping(value = "/searchProject", method = RequestMethod.POST)
+    public ResponseEntity<String> getAllToolsByToolName(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        ResponseEntity<String> response;
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            List<Project> listOfProjects = this.projectRepository.searchProjectByProjectName(jsonObject.getString("search"), jsonObject.getInt("employee_id"));
+            if (listOfProjects != null) {
+                try {
+                    String list = this.objectMapper.writeValueAsString(listOfProjects);
+                    response = new ResponseEntity<String>(list, HttpStatus.OK);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    response = new ResponseEntity<String>("Something went wrong while parsing projects", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                response = new ResponseEntity<String>("projects not found", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            response = new ResponseEntity<>("Body can't be null", HttpStatus.BAD_REQUEST);
+        }
+        return response;
+    }
+
+    @RequestMapping(value = "/findAllProjectsUserIsLeaderFor/{employee_id}", method = RequestMethod.GET)
+    public ResponseEntity<String> getAllProjectsAUserIsLeaderFor(@PathVariable Long employee_id) {
+        List<Project> listOfProjects = this.projectRepository.getAllProjectsAUserIsLeaderFor(employee_id);
         ResponseEntity<String> response;
         if (listOfProjects != null) {
             try {
