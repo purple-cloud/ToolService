@@ -29,7 +29,7 @@ public class ToolServiceApplication {
         };
     }
 
-    @Bean
+    //@Bean
     public ServletWebServerFactory servletContainer() {
         // Enable SSL Traffic
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {

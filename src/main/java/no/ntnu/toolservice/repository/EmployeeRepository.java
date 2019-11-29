@@ -19,7 +19,7 @@ public class EmployeeRepository {
 
 	// SQL Queries
 	private static final String INSERT_EMP =
-			"INSERT INTO employees(name, email, username, password, phone) VALUES (?, ?, ?, ?, ?)";
+			"INSERT INTO employees(name, email, username, password, phone, image) VALUES (?, ?, ?, ?, ?, ?)";
 	private static final String GET_ALL_EMPS = "SELECT * FROM employees";
 	private static final String GET_EMP_FROM_ID = "SELECT * FROM employees e WHERE e.employee_id = ? LIMIT 1";
 
@@ -31,7 +31,7 @@ public class EmployeeRepository {
 
 	// Insert/register new employee
 	private static final String REGISTER_EMP =
-			"INSERT INTO employees (name, username, email, password, phone) VALUES (?, ?, ?, ?, ?)";
+			"INSERT INTO employees (name, username, email, password, phone, image) VALUES (?, ?, ?, ?, ?, ?)";
 
 	@Autowired
 	public EmployeeRepository(JdbcTemplate jdbc, RolePermissionRepository rRepo) {
@@ -46,9 +46,9 @@ public class EmployeeRepository {
 				String.valueOf(e.getPhone()));
 	}
 
-	public int addEmployee(String name, String username, String email, String password, int phone) {
+	public int addEmployee(String name, String username, String email, String password, int phone, String image) {
 		// TODO The line under does not return the employees id, therefore another query is used to get it
-		jdbc.update(REGISTER_EMP, name, username, email, password, phone);
+		jdbc.update(REGISTER_EMP, name, username, email, password, phone, image);
 		// Return the id of employee
 		return jdbc.queryForObject(GET_EMP_ID_FROM_USERNAME, new Object[]{username}, Integer.class);
 	}

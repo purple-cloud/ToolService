@@ -21,17 +21,19 @@ public class Employee {
 	private String email;
 	private String password;
 	private int phone;
+	private String image;
 
 	// Security
 	private String roles = "";
 	private String permissions = "";
 
-	public Employee(String name, String username, String email, String password, int phone) {
+	public Employee(String name, String username, String email, String password, int phone, String image) {
 		this.name = name;
 		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.phone = phone;
+		this.image = image;
 	}
 
 	public List<String> getRolesList() {
