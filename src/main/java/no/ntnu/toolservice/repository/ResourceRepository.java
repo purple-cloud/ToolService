@@ -123,6 +123,20 @@ public class ResourceRepository {
         );
     }
 
+    public List<Loan> searchAllLoansByEmployeeId(String search, Long employee_id) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT tools.tool_id, tools.name, borrows.expiration_date, borrows.employee_id " +
+                        "FROM tools, borrows " +
+                        "WHERE tools.tool_id = borrows.tool_id " +
+                        "AND borrows.employee_id = :employee_id " +
+                        "AND LOWER(tools.name) LIKE CONCAT('%', LOWER(:search), '%')",
+                new MapSqlParameterSource()
+                    .addValue("search", search)
+                    .addValue("employee_id", employee_id),
+                this.loanRowMapper
+        );
+    }
+
     public List<Tool> findAllUniqueTools() {
         return jdbcTemplate.query("SELECT * FROM tools GROUP BY(name)", this.toolRowMapper);
     }
