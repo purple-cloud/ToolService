@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,9 +15,12 @@ import java.util.List;
 @SuppressWarnings("Duplicates")
 @Repository
 public class EmployeeRepository {
+	// For creating named queries
+	private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 	private JdbcTemplate jdbc;
 	private RowMapper<Employee> mapper;
 	private RolePermissionRepository rRepo;
+
 
 	// SQL Queries
 	private static final String INSERT_EMP =
@@ -34,7 +39,9 @@ public class EmployeeRepository {
 			"INSERT INTO employees (name, username, email, password, phone, image) VALUES (?, ?, ?, ?, ?, ?)";
 
 	@Autowired
-	public EmployeeRepository(JdbcTemplate jdbc, RolePermissionRepository rRepo) {
+	public EmployeeRepository(JdbcTemplate jdbc, NamedParameterJdbcTemplate namedParameterJdbcTemplate,
+							  RolePermissionRepository rRepo) {
+		this.namedParameterJdbcTemplate = namedParameterJdbcTemplate;
 		this.jdbc = jdbc;
 		this.rRepo = rRepo;
 		this.mapper = new EmployeeRowMapper();
@@ -92,6 +99,29 @@ public class EmployeeRepository {
 		});
 
 		return employees;
+	}
+
+	public List<Employee> findAllEmployeesInProject(Long project_id) {
+		return this.namedParameterJdbcTemplate.query(
+				"SELECT * FROM employees " +
+						"INNER JOIN project_employees pe on employees.employee_id = pe.employee_id " +
+						"WHERE pe.project_id = :project_id",
+				new MapSqlParameterSource("project_id", project_id),
+				this.mapper
+		);
+	}
+
+	public List<Employee> searchForEmployeesInProject(Long project_id, String search) {
+		return this.namedParameterJdbcTemplate.query(
+				"SELECT * FROM employees " +
+						"INNER JOIN project_employees pe on employees.employee_id = pe.employee_id " +
+						"WHERE pe.project_id = :project_id " +
+						"AND LOWER(employees.name) LIKE CONCAT('%', LOWER(:search), '%')",
+				new MapSqlParameterSource()
+						.addValue("project_id", project_id)
+						.addValue("search", search),
+				this.mapper
+		);
 	}
 
 	public boolean employeeExists(String username) {

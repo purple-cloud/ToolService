@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.entity.Employee;
 import no.ntnu.toolservice.entity.Project;
+import no.ntnu.toolservice.repository.EmployeeRepository;
 import no.ntnu.toolservice.repository.ProjectRepository;
 import no.ntnu.toolservice.service.ProjectService;
 import org.json.JSONObject;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+
 @RestController
 @CrossOrigin(origins = "*")
 public class AdministrationController {
@@ -24,14 +27,57 @@ public class AdministrationController {
 
     // Repository
     private final ProjectRepository projectRepository;
+    private final EmployeeRepository employeeRepository;
 
     @Autowired
     public AdministrationController(ProjectService projectService,
-                                    ProjectRepository projectRepository) {
+                                    ProjectRepository projectRepository,
+                                    EmployeeRepository employeeRepository) {
         this.projectService = projectService;
         this.projectRepository = projectRepository;
+        this.employeeRepository = employeeRepository;
         // Init ObjectMapper
         this.objectMapper = new ObjectMapper();
+    }
+
+    @RequestMapping(value = "/employeesInProject/{project_id}", method = RequestMethod.GET)
+    public ResponseEntity<String> findAllEmployeesInAGivenProject(@PathVariable Long project_id) {
+        List<Employee> employeeList = this.employeeRepository.findAllEmployeesInProject(project_id);
+        if (employeeList != null) {
+            try {
+                String list = this.objectMapper.writeValueAsString(employeeList);
+                return new ResponseEntity<>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Something went wrong while parsing employees", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>("Employees not found", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/searchForEmployeesInProject", method = RequestMethod.POST)
+    public ResponseEntity<String> searchForEmployeesInProject(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        System.out.println("hei");
+        ResponseEntity<String> responseEntity;
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            try {
+                List<Employee> employeeList = this.employeeRepository.searchForEmployeesInProject(
+                        jsonObject.getLong("project_id"),
+                        jsonObject.getString("search")
+                );
+                String list = this.objectMapper.writeValueAsString(employeeList);
+                responseEntity = new ResponseEntity<>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                responseEntity = new ResponseEntity<>("Something went wrong while parsing employees", BAD_REQUEST);
+            }
+        } else {
+            responseEntity = new ResponseEntity<>("Body cant be null", BAD_REQUEST);
+        }
+        return responseEntity;
     }
 
     /*------------------------------
@@ -115,7 +161,9 @@ public class AdministrationController {
             return this.projectService.addNewProject(new Project(
                     jsonObject.getString("name"),
                     jsonObject.getString("desc"),
-                    jsonObject.getString("location")
+                    jsonObject.getString("location"),
+                    // TODO Get actual image from byte[]
+                    jsonObject.getString("image")
             ));
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
@@ -157,6 +205,22 @@ public class AdministrationController {
             responseEntity = new ResponseEntity<>("No project leaders for specified project", HttpStatus.BAD_REQUEST);
         }
         return responseEntity;
+    }
+
+    @RequestMapping(value = "/searchAllProjects/{search}", method = RequestMethod.GET)
+    public ResponseEntity<String> getAllToolsByToolName(@PathVariable String search) {
+            List<Project> listOfProjects = this.projectRepository.searchAllProjects(search);
+            if (listOfProjects != null) {
+                try {
+                    String list = this.objectMapper.writeValueAsString(listOfProjects);
+                    return new ResponseEntity<String>(list, HttpStatus.OK);
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                    return new ResponseEntity<String>("Something went wrong while parsing projects", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                return new ResponseEntity<String>("projects not found", HttpStatus.BAD_REQUEST);
+            }
     }
 
     @RequestMapping(value = "/searchProject", method = RequestMethod.POST)

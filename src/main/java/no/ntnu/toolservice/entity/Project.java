@@ -26,10 +26,11 @@ public class Project {
 
     private String image;
 
-    public Project(@NotEmpty String name, @NotEmpty String description, @NotEmpty String location) {
+    public Project(@NotEmpty String name, @NotEmpty String description, @NotEmpty String location, String image) {
         this.name = name;
         this.description = description;
         this.location = location;
+        this.image = image;
     }
 
 }
