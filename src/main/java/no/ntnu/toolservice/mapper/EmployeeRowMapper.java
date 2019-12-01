@@ -17,6 +17,7 @@ public class EmployeeRowMapper implements RowMapper<Employee> {
 		e.setEmail(r.getString("email"));
 		e.setPassword(r.getString("password"));
 		e.setPhone(r.getInt("phone"));
+		e.setImage(r.getString("image"));
 
 		return e;
 	}

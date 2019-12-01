@@ -6,6 +6,7 @@ import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.mapper.EmployeeRowMapper;
 import no.ntnu.toolservice.mapper.ProjectRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -68,11 +69,15 @@ public class ProjectRepository {
      * @return the project found by the specified project name
      */
     public Project findProjectByProjectName(String projectName) {
-        return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM projects WHERE name = :name",
-                new MapSqlParameterSource("name", projectName),
-                this.projectRowMapper
-        );
+        try {
+            return this.namedParameterJdbcTemplate.queryForObject(
+                    "SELECT * FROM projects WHERE name = :name",
+                    new MapSqlParameterSource("name", projectName),
+                    this.projectRowMapper
+            );
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     /**
@@ -154,10 +159,12 @@ public class ProjectRepository {
      */
     public void addProject(Project project) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO projects (name, location) VALUES (:name, :location)",
+                "INSERT INTO projects (name, location, `desc`, image) VALUES (:name, :location, :desc, :image)",
                 new MapSqlParameterSource()
                         .addValue("name", project.getName())
                         .addValue("location", project.getLocation())
+                        .addValue("desc", project.getDescription())
+                        .addValue("image", project.getImage())
         );
     }
 
@@ -189,16 +196,19 @@ public class ProjectRepository {
      * Add project leader to a project
      */
     public void addProjectLeaderToProject(Long employee_id, Long project_id) {
-        int leaderId = this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT leader_id FROM project_leader WHERE employee_id = :employee_id",
-                new MapSqlParameterSource("employee_id", employee_id),
-                Integer.class
-        );
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO project_project_leader (project_id, leader_id) VALUES (:project_id, :leader_id)",
+                "INSERT INTO `project_project_leader`(`project_id`, `leader_id`) \n" +
+                        "VALUES (:project_id, \n" +
+                        "       (SELECT pl.leader_id \n" +
+                        "        \tFROM project_leader pl\n" +
+                        "        \tINNER JOIN employee_project_leader epl ON epl.employee_id = pl.leader_id\n" +
+                        "        \tINNER JOIN employees e ON e.employee_id = epl.employee_id\n" +
+                        "        \tWHERE e.employee_id = :employee_id\n" +
+                        "       )\n" +
+                        ")",
                 new MapSqlParameterSource()
                         .addValue("project_id", project_id)
-                        .addValue("leader_id", leaderId)
+                        .addValue("employee_id", employee_id)
         );
     }
 
@@ -257,6 +267,14 @@ public class ProjectRepository {
                         "WHERE employees.employee_id = :employee_id " +
                         "AND LOWER(projects.name) LIKE CONCAT('%', LOWER(:name), '%')",
                 new MapSqlParameterSource().addValue("name", projectName).addValue("employee_id", employee_id),
+                this.projectRowMapper
+        );
+    }
+
+    public List<Project> searchAllProjects(String search) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT * FROM projects WHERE LOWER(projects.name) LIKE CONCAT('%', LOWER(:search), '%')",
+                new MapSqlParameterSource("search", search),
                 this.projectRowMapper
         );
     }

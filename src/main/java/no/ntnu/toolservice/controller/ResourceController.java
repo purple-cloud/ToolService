@@ -44,7 +44,7 @@ public class ResourceController {
         // Init ObjectMapper
         this.objectMapper = new ObjectMapper();
     }
-
+    
     /*------------------------------
     Tool relevant endpoints
     ----------------------------*/
