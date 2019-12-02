@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -189,7 +190,7 @@ public class AdministrationController {
         }
     }
 
-    @RequestMapping(value = "/findProjectLeaders/{projectId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/findProjectLeaders/{projectId}", method = RequestMethod.GET)
     public ResponseEntity<String> findAllProjectLeadersInProjectByProjectId(@PathVariable Long projectId) {
         List<Employee> listOfProjectLeaders = this.projectRepository.findAllProjectLeadersInProjectByProjectId(projectId);
         ResponseEntity<String> responseEntity;
@@ -205,6 +206,27 @@ public class AdministrationController {
             responseEntity = new ResponseEntity<>("No project leaders for specified project", HttpStatus.BAD_REQUEST);
         }
         return responseEntity;
+    }
+
+    @RequestMapping(value = "/searchAllProjectLeaders", method = RequestMethod.POST)
+    public ResponseEntity<String> searchAllProjectLeadersInProject(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        if (body != null) {
+            try {
+                JSONObject jsonObject = new JSONObject(body);
+                List<Employee> plList = this.projectRepository.searchAllProjectLeadersInProject(
+                        jsonObject.getLong("project_id"),
+                        jsonObject.getString("search")
+                );
+                String list = this.objectMapper.writeValueAsString(plList);
+                return new ResponseEntity<>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Something went wrong while parsing employees", BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>("Body can't be null", BAD_REQUEST);
+        }
     }
 
     @RequestMapping(value = "/searchAllProjects/{search}", method = RequestMethod.GET)

@@ -3,9 +3,11 @@ package no.ntnu.toolservice.repository;
 import no.ntnu.toolservice.domain.Loan;
 import no.ntnu.toolservice.entity.Material;
 import no.ntnu.toolservice.entity.Tool;
+import no.ntnu.toolservice.entity.ToolStatus;
 import no.ntnu.toolservice.mapper.LoanRowMapper;
 import no.ntnu.toolservice.mapper.MaterialRowMapper;
 import no.ntnu.toolservice.mapper.ToolRowMapper;
+import no.ntnu.toolservice.mapper.ToolStatusRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -26,6 +28,7 @@ public class ResourceRepository {
     private final RowMapper<Tool> toolRowMapper;
     private final RowMapper<Material> materialRowMapper;
     private final RowMapper<Loan> loanRowMapper;
+    private final RowMapper<ToolStatus> toolStatusRowMapper;
 
     @Autowired
     public ResourceRepository(NamedParameterJdbcTemplate namedParameterJdbcTemplate,
@@ -35,6 +38,7 @@ public class ResourceRepository {
         this.toolRowMapper = new ToolRowMapper();
         this.materialRowMapper = new MaterialRowMapper();
         this.loanRowMapper = new LoanRowMapper();
+        this.toolStatusRowMapper = new ToolStatusRowMapper();
     }
 
     public List<Tool> findAllTools() {
@@ -123,6 +127,20 @@ public class ResourceRepository {
         );
     }
 
+    public List<Loan> searchAllLoansByEmployeeId(String search, Long employee_id) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT tools.tool_id, tools.name, borrows.expiration_date, borrows.employee_id " +
+                        "FROM tools, borrows " +
+                        "WHERE tools.tool_id = borrows.tool_id " +
+                        "AND borrows.employee_id = :employee_id " +
+                        "AND LOWER(tools.name) LIKE CONCAT('%', LOWER(:search), '%')",
+                new MapSqlParameterSource()
+                    .addValue("search", search)
+                    .addValue("employee_id", employee_id),
+                this.loanRowMapper
+        );
+    }
+
     public List<Tool> findAllUniqueTools() {
         return jdbcTemplate.query("SELECT * FROM tools GROUP BY(name)", this.toolRowMapper);
     }
@@ -135,5 +153,13 @@ public class ResourceRepository {
                 new MapSqlParameterSource("project_id", project_id),
                 this.toolRowMapper
         );
+    }
+
+    public List<ToolStatus> findAllToolsWithAvailabilityStatus(Long projectId, String toolName) {
+    	String sql = "SELECT tools.tool_id, name, location, isAvailable FROM tools " +
+			                "INNER JOIN project_tools pt ON tools.tool_id = pt.tool_id " +
+			                "WHERE pt.project_id = ? " +
+			                "AND tools.name = ?";
+    	return this.jdbcTemplate.query(sql, new Object[]{projectId, toolName}, this.toolStatusRowMapper);
     }
 }
