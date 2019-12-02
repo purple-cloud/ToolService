@@ -251,6 +251,21 @@ public class ProjectRepository {
         );
     }
 
+    public List<Employee> searchAllProjectLeadersInProject(Long project_id, String search) {
+        return this.namedParameterJdbcTemplate.query(
+                "SELECT * FROM employees " +
+                        "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
+                        "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
+                        "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
+                        "WHERE ppl.project_id = :project_id " +
+                        "AND LOWER(employees.name) LIKE CONCAT('%', LOWER(:search), '%')",
+                new MapSqlParameterSource()
+                    .addValue("project_id", project_id)
+                    .addValue("search", search),
+                this.employeeRowMapper
+        );
+    }
+
     /**
      * Returns a list containing projects that includes the specified name
      *
