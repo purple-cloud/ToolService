@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.domain.Loan;
 import no.ntnu.toolservice.entity.Tool;
+import no.ntnu.toolservice.entity.ToolStatus;
 import no.ntnu.toolservice.files.StorageService;
 import no.ntnu.toolservice.repository.ResourceRepository;
 import no.ntnu.toolservice.service.ResourceService;
@@ -153,6 +154,21 @@ public class ResourceController {
             e.printStackTrace();
             return new ResponseEntity<>("Something went wrong while parsing loans", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @RequestMapping(value = "/tools/status/{project-id}/{tool-name}", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity getToolsWithStatuses(@PathVariable("project-id") Long projectId,
+                                               @PathVariable("tool-name") String toolName) {
+        ResponseEntity response = null;
+
+        try {
+            List<ToolStatus> statuses = this.resourceRepository.findAllToolsWithAvailabilityStatus(projectId, toolName);
+            response = ResponseEntity.ok(statuses);
+        } catch (Exception e) {
+            response = ResponseEntity.badRequest().body(e.getMessage());
+        }
+
+        return response;
     }
 
     @RequestMapping(value = "/searchAllBorrows", method = RequestMethod.POST)
