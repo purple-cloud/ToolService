@@ -2,6 +2,7 @@ package no.ntnu.toolservice.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.ntnu.toolservice.domain.Loan;
 import no.ntnu.toolservice.entity.Tool;
 import no.ntnu.toolservice.entity.ToolStatus;
 import no.ntnu.toolservice.files.StorageService;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import sun.font.CharToGlyphMapper;
 
 import javax.xml.ws.Response;
 import java.io.IOException;
@@ -167,6 +169,27 @@ public class ResourceController {
         }
 
         return response;
+    }
+
+    @RequestMapping(value = "/searchAllBorrows", method = RequestMethod.POST)
+    public ResponseEntity<String> searchAllBorrowsByEmployeeId(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            List<Loan> listOfLoans = this.resourceRepository.searchAllLoansByEmployeeId(
+                    jsonObject.getString("search"),
+                    jsonObject.getLong("employee_id")
+            );
+            try {
+                String list = this.objectMapper.writeValueAsString(listOfLoans);
+                return new ResponseEntity<>(list, HttpStatus.OK);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+                return new ResponseEntity<>("Something went wrong while parsing loans", HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>("Body Can't be null", HttpStatus.BAD_REQUEST);
+        }
     }
 
     /*------------------------------
