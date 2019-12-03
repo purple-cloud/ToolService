@@ -132,4 +132,23 @@ public class EmployeeRepository {
 		} catch (EmptyResultDataAccessException ex) {} // We are expecting the result set to be empty
 		return (employeeId != 0);
 	}
+
+	/**
+	 * Find all employees not in a project. Useful for when adding new employees to a project they are not subscribed
+	 * to.
+	 *
+	 * @param projectId         identity of project to search in
+	 * @param employeeSearch    full (or a subset of) user name
+	 * @return                  a list of employees not in a project
+	 */
+	public List<Employee> findEmployeesNotInProject(long projectId, String employeeSearch) {
+		String sql = "SELECT e.employee_id, name, email, username, password, phone, e.image, date_created FROM employees e " +
+					"    INNER JOIN project_employees pe on e.employee_id = pe.employee_id " +
+					"    WHERE e.employee_id NOT IN (SELECT employee_id FROM project_employees WHERE project_id = ?) " +
+					"    AND LOWER(e.name) LIKE CONCAT('%', LOWER(?), '') " +
+					"    GROUP BY e.employee_id " +
+					"    ORDER BY e.employee_id DESC";
+
+		return this.jdbc.query(sql, new Object[]{projectId, employeeSearch}, mapper);
+	}
 }

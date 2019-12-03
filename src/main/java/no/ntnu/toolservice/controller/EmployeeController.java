@@ -9,10 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -69,5 +66,23 @@ public class EmployeeController {
 		return new ResponseEntity<String>(resp, OK);
 	}
 
-
+	/**
+	 * Find all employees not in a project. Useful for when adding new employees to a project they are not subscribed
+	 * to.
+	 *
+	 * @param projectId         identity of project to search in
+	 * @param employeeSearch    full (or a subset of) user name
+	 * @return                  a list of employees not in a project
+	 *
+	 * @see no.ntnu.toolservice.repository.EmployeeRepository
+	 */
+	@RequestMapping(value = "/project/nonmembers/{project-id}", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity getAllEmployeesNotInProject(@PathVariable("project-id") long projectId,
+	                                                  @RequestParam("search") String employeeSearch) {
+		try {
+			return ResponseEntity.ok(repository.findEmployeesNotInProject(projectId, employeeSearch));
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		}
+	}
 }

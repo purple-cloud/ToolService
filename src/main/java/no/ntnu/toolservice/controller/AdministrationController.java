@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -194,7 +195,7 @@ public class AdministrationController {
         // Store the image
         this.storageService.store(image);
 
-        // Get the absolute remote path of the iamge
+        // Get the absolute remote path of the image
         String requestUrl = request.getHeader("Host");
         String fileName = image.getOriginalFilename();
         String imgPath = "http://".concat(requestUrl).concat("/images/").concat(fileName).replace("8443", "8080");
@@ -204,9 +205,9 @@ public class AdministrationController {
 
         // Add to database
         long projectId = this.projectRepository.addProjectAndGetId(p);
-        //this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
+        this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
 
-        return ResponseEntity.ok(this.projectRepository.findProjectById(projectId));
+        return ResponseEntity.ok(new HashMap<String, Object>() {{put("project_id", projectId);}});
     }
 
     @RequestMapping(value = "/addNewProjectLeader/{id}", method = RequestMethod.POST)

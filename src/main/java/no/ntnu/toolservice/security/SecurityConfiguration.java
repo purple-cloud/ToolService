@@ -51,7 +51,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 // Secure endpoints
                 .antMatchers("/login").permitAll()
-                .antMatchers("/employees", "/employees/**").hasAuthority("user:view_all")
+                .antMatchers("/employees/**").hasAuthority("user:view_all")
                 .antMatchers("*").permitAll();
 
     }
