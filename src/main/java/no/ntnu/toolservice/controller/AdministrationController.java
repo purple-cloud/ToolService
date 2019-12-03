@@ -4,20 +4,28 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.ntnu.toolservice.entity.Employee;
 import no.ntnu.toolservice.entity.Project;
+import no.ntnu.toolservice.files.StorageService;
 import no.ntnu.toolservice.repository.EmployeeRepository;
 import no.ntnu.toolservice.repository.ProjectRepository;
+import no.ntnu.toolservice.service.FileSystemStorageService;
 import no.ntnu.toolservice.service.ProjectService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
+
+@SuppressWarnings("Duplicates")
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -29,14 +37,17 @@ public class AdministrationController {
     // Repository
     private final ProjectRepository projectRepository;
     private final EmployeeRepository employeeRepository;
+    private final StorageService storageService;
 
     @Autowired
     public AdministrationController(ProjectService projectService,
                                     ProjectRepository projectRepository,
-                                    EmployeeRepository employeeRepository) {
+                                    EmployeeRepository employeeRepository,
+                                    FileSystemStorageService storageService) {
         this.projectService = projectService;
         this.projectRepository = projectRepository;
         this.employeeRepository = employeeRepository;
+        this.storageService = storageService;
         // Init ObjectMapper
         this.objectMapper = new ObjectMapper();
     }
@@ -154,6 +165,7 @@ public class AdministrationController {
     Admin relevant endpoints
     ----------------------------*/
 
+    /*
     @RequestMapping(value = "/addNewProject", method = RequestMethod.POST)
     public ResponseEntity<String> addNewProject(HttpEntity<String> httpEntity) {
         String body = httpEntity.getBody();
@@ -169,6 +181,32 @@ public class AdministrationController {
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
         }
+    }*/
+
+    @RequestMapping(value = "/addNewProject", method = RequestMethod.POST, consumes = "multipart/form-data")
+    public ResponseEntity addNewProject(@RequestParam String name,
+                                        @RequestParam String desc,
+                                        @RequestParam String location,
+                                        @RequestParam("employee_id") String employee_id,
+                                        @RequestParam("image") MultipartFile image,
+                                        HttpServletRequest request,
+                                        HttpServletResponse response) {
+        // Store the image
+        this.storageService.store(image);
+
+        // Get the absolute remote path of the iamge
+        String requestUrl = request.getHeader("Host");
+        String fileName = image.getOriginalFilename();
+        String imgPath = "http://".concat(requestUrl).concat("/images/").concat(fileName).replace("8443", "8080");
+
+        // Create the project
+        Project p = new Project(name, desc, location, imgPath);
+
+        // Add to database
+        long projectId = this.projectRepository.addProjectAndGetId(p);
+        //this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
+
+        return ResponseEntity.ok(this.projectRepository.findProjectById(projectId));
     }
 
     @RequestMapping(value = "/addNewProjectLeader/{id}", method = RequestMethod.POST)

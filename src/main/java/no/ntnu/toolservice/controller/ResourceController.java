@@ -10,19 +10,23 @@ import no.ntnu.toolservice.repository.ResourceRepository;
 import no.ntnu.toolservice.service.ResourceService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import sun.font.CharToGlyphMapper;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.Response;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +40,9 @@ public class ResourceController {
 
     // Repositories
     private final ResourceRepository resourceRepository;
+
+	//@Value("${file.image.location}")
+	//private String fileLocation;
 
     @Autowired
     public ResourceController(ResourceService resourceService,
@@ -83,24 +90,21 @@ public class ResourceController {
         }
     }
 
-    @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST)
+    @RequestMapping(value = "/newToolWithImage", method = RequestMethod.POST, consumes = "multipart/form-data")
     public ResponseEntity<String> newToolWithImage(@RequestParam("name") String name,
                                                    @RequestParam("desc") String desc,
                                                    @RequestParam("location") String location,
                                                    @RequestParam("file") MultipartFile multipartFile) {
+
         // First stores the file in the file system
         this.storageService.store(multipartFile);
         try {
             String filename = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-            if (filename.contains(".jpg")) {
-                filename = filename.split("j", 2)[0].concat("png");
-            }
             // Get the file path of the newly added file
-            String filePath = this.storageService.loadAsResource(filename).getURL().toString();
             return this.resourceService.newTool(new Tool(
-                    name, desc, filePath, location
+                    name, desc, filename, location
             ));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>("Error while creating tool", HttpStatus.BAD_REQUEST);
         }
@@ -202,15 +206,24 @@ public class ResourceController {
         return this.storageService.store(multipartFile);
     }*/
 
-    @RequestMapping(value = "/files/{filename}", method = RequestMethod.POST, produces = "image/png")
-    public ResponseEntity<byte[]> getFile(@PathVariable String filename) {
-        Resource file = this.storageService.loadAsResource(filename);
-        ArrayList<Byte> blist = null;
-        try {
-            return new ResponseEntity<>(Files.readAllBytes(Paths.get(file.getURI())), HttpStatus.OK);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return new ResponseEntity("", HttpStatus.BAD_REQUEST);
-        }
-    }
+
+	@RequestMapping(value = "/images/{image-name:.+}", method = RequestMethod.GET)
+	public ResponseEntity getImage(@PathVariable("image-name") String imgName, HttpServletResponse response) {
+		Path imgPath = this.storageService.load(imgName);
+		try {
+            // Get file stream
+			FileInputStream img = new FileInputStream(imgPath.toFile());
+
+            // Set MIME type of content to render, i.e. images/png
+            response.setContentType(Files.probeContentType(imgPath));
+
+            // Dump the content of the file into the response body
+			StreamUtils.copy(img, response.getOutputStream());
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			return ResponseEntity.notFound().build();
+		}
+
+		return ResponseEntity.ok().build();
+	}
 }

@@ -1,5 +1,6 @@
 package no.ntnu.toolservice.files;
 
+import no.ntnu.toolservice.ToolServiceApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
@@ -7,9 +8,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 public class StorageProperties {
 
     // Folder location for storing files
-    private String location = "file_upload_dir";
+    private String location = "images";
 
     public String getLocation() {
+        System.out.println(location);
         return location;
     }
 
