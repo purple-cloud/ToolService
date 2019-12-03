@@ -110,6 +110,21 @@ public class ResourceRepository {
         );
     }
 
+    public void returnTool(Long tool_id) {
+        this.jdbcTemplate.update(
+                "DELETE FROM borrows WHERE tool_id = ?",
+                tool_id
+        );
+    }
+
+    public void updateToolAvailability(boolean isAvailable, Long tool_id) {
+        this.jdbcTemplate.update(
+                "UPDATE tools SET isAvailable = ? " +
+                        "WHERE tool_id = ?",
+                isAvailable, tool_id
+        );
+    }
+
     /**
      * Returns all the tools that an employee is currently borrowing
      *

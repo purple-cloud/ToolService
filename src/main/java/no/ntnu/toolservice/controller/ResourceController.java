@@ -139,9 +139,23 @@ public class ResourceController {
                     jsonObject.getLong("employee_id"),
                     jsonObject.getLong("tool_id")
             );
+            this.resourceRepository.updateToolAvailability(false, jsonObject.getLong("tool_id"));
             return new ResponseEntity<>("OK", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @RequestMapping(value = "/returnTool", method = RequestMethod.POST)
+    public ResponseEntity<String> returnSpecifiedTool(HttpEntity<String> httpEntity) {
+        String body = httpEntity.getBody();
+        if (body != null) {
+            JSONObject jsonObject = new JSONObject(body);
+            this.resourceRepository.returnTool(jsonObject.getLong("tool_id"));
+            this.resourceRepository.updateToolAvailability(true, jsonObject.getLong("tool_id"));
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Body can't be empty", HttpStatus.BAD_REQUEST);
         }
     }
 

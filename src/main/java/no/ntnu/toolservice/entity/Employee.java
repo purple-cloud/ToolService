@@ -36,6 +36,14 @@ public class Employee {
 		this.image = image;
 	}
 
+	public Employee(String name, String username, String email, String password, int phone) {
+		this.name = name;
+		this.username = username;
+		this.email = email;
+		this.password = password;
+		this.phone = phone;
+	}
+
 	public List<String> getRolesList() {
 		if (roles.length() > 0) {
 			return Arrays.asList(roles.split(","));
