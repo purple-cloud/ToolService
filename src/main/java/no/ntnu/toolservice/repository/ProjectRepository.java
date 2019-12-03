@@ -8,12 +8,21 @@ import no.ntnu.toolservice.mapper.ProjectRowMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class ProjectRepository {
@@ -169,6 +178,32 @@ public class ProjectRepository {
     }
 
     /**
+     * Add a new project and get the identity of the project.
+     *
+     * @param p     the new project to add to database
+     * @return      the auto generated identity of the new project
+     */
+    public long addProjectAndGetId(Project p) {
+        String sql = "INSERT INTO projects (name, `desc`, location, image) VALUES(?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+                        PreparedStatement ps =
+                                connection.prepareStatement(sql, new String[]{"project_id"});
+                        ps.setString(1, p.getName());
+                        ps.setString(2, p.getDescription());
+                        ps.setString(3, p.getLocation());
+                        ps.setString(4, p.getImage());
+                        return ps;
+                    }
+                },
+                keyHolder);
+	    System.out.println(keyHolder.getKey().longValue());
+        return keyHolder.getKey().longValue();
+    }
+
+    /**
      * Create a new project leader
      */
     public void addProjectLeader(Long employeeId) {
@@ -197,14 +232,14 @@ public class ProjectRepository {
      */
     public void addProjectLeaderToProject(Long employee_id, Long project_id) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO `project_project_leader`(`project_id`, `leader_id`) \n" +
-                        "VALUES (:project_id, \n" +
-                        "       (SELECT pl.leader_id \n" +
-                        "        \tFROM project_leader pl\n" +
-                        "        \tINNER JOIN employee_project_leader epl ON epl.employee_id = pl.leader_id\n" +
-                        "        \tINNER JOIN employees e ON e.employee_id = epl.employee_id\n" +
-                        "        \tWHERE e.employee_id = :employee_id\n" +
-                        "       )\n" +
+                "INSERT INTO project_project_leader(project_id, leader_id) \n" +
+                        "VALUES (:project_id, " +
+                        "       (SELECT pl.leader_id " +
+                        "           FROM project_leader pl " +
+                        "           INNER JOIN employee_project_leader epl ON epl.employee_id = pl.leader_id " +
+                        "           INNER JOIN employees e ON e.employee_id = epl.employee_id " +
+                        "           WHERE e.employee_id = :employee_id " +
+                        "       )" +
                         ")",
                 new MapSqlParameterSource()
                         .addValue("project_id", project_id)

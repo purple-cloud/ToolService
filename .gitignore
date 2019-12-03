@@ -34,3 +34,4 @@ build/
 file_upload_dir/*
 file_upload_dir
 *.properties
+images/
