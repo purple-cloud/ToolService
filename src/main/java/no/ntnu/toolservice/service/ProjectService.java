@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.OK;
+
 @Service
 public class ProjectService {
 
@@ -71,22 +74,31 @@ public class ProjectService {
         }
     }
 
-    public ResponseEntity<String> addNewProjectLeader(Long employeeId) {
-        Employee foundLeader = this.projectRepository.findProjectLeaderByEmployeeId(employeeId);
-        if (foundLeader == null) {
-            this.projectRepository.addProjectLeader(employeeId);
-            return new ResponseEntity<>("OK", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Project leader with that id already exist", HttpStatus.BAD_REQUEST);
-        }
-    }
-
     public ResponseEntity<String> addProjectLeaderToProject(Long employee_id, Long project_id) {
-        try {
-            this.projectRepository.addProjectLeaderToProject(employee_id, project_id);
-            return new ResponseEntity<>("OK", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("NOPE", HttpStatus.BAD_REQUEST);
+        // First see if the employee already is a project leader
+        Employee isLeader = this.projectRepository.findProjectLeaderByEmployeeId(employee_id);
+        // If employee is not a project leader, create an instance
+        if (isLeader == null) {
+            Long leader_id = this.projectRepository.addProjectLeader();
+            // Then link the employee to that project leader id
+
+            this.projectRepository.connectLeaderIdWithEmployeeId(
+                    employee_id, leader_id);
+            this.projectRepository.addProjectLeaderToProject(
+                    employee_id, project_id);
+            return new ResponseEntity<>("OK", OK);
+        } else {
+            // If the employee is a project leader see if employee is in project
+            Employee foundLeader = this.projectRepository.findProjectLeaderInProject(
+                    employee_id, project_id);
+            // If the employee is not a project leader in this project, add as project leader in that project
+            if (foundLeader == null) {
+                this.projectRepository.addProjectLeaderToProject(
+                        employee_id, project_id);
+                return new ResponseEntity<>("OK", OK);
+            } else {
+                return new ResponseEntity<>("Project leader already exists", BAD_REQUEST);
+            }
         }
     }
 

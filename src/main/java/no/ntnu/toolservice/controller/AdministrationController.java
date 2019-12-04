@@ -170,7 +170,7 @@ public class AdministrationController {
     public ResponseEntity addNewProject(@RequestParam String name,
                                         @RequestParam String desc,
                                         @RequestParam String location,
-                                        @RequestParam("employee_id") String employee_id,
+                                        @RequestParam("employee_id") Long employee_id,
                                         @RequestParam("image") MultipartFile image,
                                         HttpServletRequest request,
                                         HttpServletResponse response) {
@@ -189,14 +189,8 @@ public class AdministrationController {
         long projectId = this.projectRepository.addProjectAndGetId(p);
 
         //TODO Uncomment line once the query inside the repository method works
-        //this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
-
+        this.projectRepository.addProjectLeaderToProject(employee_id, projectId);
         return ResponseEntity.ok(this.projectRepository.findProjectById(projectId));
-    }
-
-    @RequestMapping(value = "/addNewProjectLeader/{id}", method = RequestMethod.POST)
-    public ResponseEntity<String> addNewProjectLeader(@PathVariable(value = "id") Long employee_id) {
-        return this.projectService.addNewProjectLeader(employee_id);
     }
 
     @RequestMapping(value = "/addProjectLeaderToProject", method = RequestMethod.POST)
