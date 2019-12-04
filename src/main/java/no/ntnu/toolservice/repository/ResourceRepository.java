@@ -87,12 +87,35 @@ public class ResourceRepository {
                         .addValue("image", tool.getImage()));
     }
 
-    public Tool findToolById(Long toolId) {
-        return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM tools WHERE tool_id = :id",
-                new MapSqlParameterSource("id", toolId),
-                this.toolRowMapper
-        );
+    public Tool getBorrowedTool(Long tool_id) {
+        Tool foundTool = null;
+        try {
+            foundTool = this.namedParameterJdbcTemplate.queryForObject(
+                    "SELECT * FROM tools " +
+                            "INNER JOIN borrows b on tools.tool_id = b.tool_id " +
+                            "WHERE b.tool_id = :tool_id",
+                    new MapSqlParameterSource("tool_id", tool_id),
+                    this.toolRowMapper
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Hupsideisann");;
+        }
+        return foundTool;
+    }
+
+    public Tool getSpecificTool(Long tool_id) {
+        Tool foundTool = null;
+        try {
+            foundTool = this.namedParameterJdbcTemplate.queryForObject(
+                    "SELECT * FROM tools WHERE tools.tool_id = :tool_id",
+                    new MapSqlParameterSource("tool_id", tool_id),
+                    this.toolRowMapper
+            );
+        } catch (Exception e) {
+            System.err.println("THIS IS SPARTAAAAAAA!!!!!!");;
+        }
+        return foundTool;
     }
 
     /**

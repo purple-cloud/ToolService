@@ -139,12 +139,23 @@ public class ResourceController {
         String body = httpEntity.getBody();
         if (body != null) {
             JSONObject jsonObject = new JSONObject(body);
-            this.resourceRepository.borrowTool(
-                    jsonObject.getLong("employee_id"),
-                    jsonObject.getLong("tool_id")
-            );
-            this.resourceRepository.updateToolAvailability(false, jsonObject.getLong("tool_id"));
-            return new ResponseEntity<>("OK", HttpStatus.OK);
+            // See if tool exists
+            Tool toolExists = this.resourceRepository.getSpecificTool(jsonObject.getLong("tool_id"));
+            if (toolExists != null) {
+                Tool toolBorrowed = this.resourceRepository.getBorrowedTool(jsonObject.getLong("tool_id"));
+                if (toolBorrowed == null) {
+                    this.resourceRepository.borrowTool(
+                            jsonObject.getLong("employee_id"),
+                            jsonObject.getLong("tool_id")
+                    );
+                    this.resourceRepository.updateToolAvailability(false, jsonObject.getLong("tool_id"));
+                    return new ResponseEntity<>("OK", HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>("Tool is already borrowed", HttpStatus.BAD_REQUEST);
+                }
+            } else {
+                return new ResponseEntity<>("Tool doesn't exist", HttpStatus.BAD_REQUEST);
+            }
         } else {
             return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
         }
@@ -155,9 +166,14 @@ public class ResourceController {
         String body = httpEntity.getBody();
         if (body != null) {
             JSONObject jsonObject = new JSONObject(body);
-            this.resourceRepository.returnTool(jsonObject.getLong("tool_id"));
-            this.resourceRepository.updateToolAvailability(true, jsonObject.getLong("tool_id"));
-            return new ResponseEntity<>("OK", HttpStatus.OK);
+            Tool foundLoan = this.resourceRepository.getBorrowedTool(jsonObject.getLong("tool_id"));
+            if (foundLoan != null) {
+                this.resourceRepository.returnTool(jsonObject.getLong("tool_id"));
+                this.resourceRepository.updateToolAvailability(true, jsonObject.getLong("tool_id"));
+                return new ResponseEntity<>("OK", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("The tool isn't on loan", HttpStatus.BAD_REQUEST);
+            }
         } else {
             return new ResponseEntity<>("Body can't be empty", HttpStatus.BAD_REQUEST);
         }
