@@ -206,10 +206,28 @@ public class ProjectRepository {
     /**
      * Create a new project leader
      */
-    public void addProjectLeader(Long employeeId) {
+    public Long addProjectLeader() {
+        String sql = "INSERT INTO project_leader () VALUES ()";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        this.jdbcTemplate.update(
+                new PreparedStatementCreator() {
+                    @Override
+                    public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+                        PreparedStatement ps = con.prepareStatement(sql, new String[]{"leader_id"});
+                        return ps;
+                    }
+                }, keyHolder
+        );
+        return keyHolder.getKey().longValue();
+    }
+
+    public void connectLeaderIdWithEmployeeId(Long employee_id, Long leader_id) {
         this.namedParameterJdbcTemplate.update(
-                "INSERT INTO project_leader (employee_id) VALUES (:employee_id)",
-                new MapSqlParameterSource("employee_id", employeeId)
+                "INSERT INTO employee_project_leader (employee_id, leader_id) " +
+                        "VALUES (:employee_id, :leader_id)",
+                new MapSqlParameterSource()
+                    .addValue("employee_id", employee_id)
+                    .addValue("leader_id", leader_id)
         );
     }
 
@@ -220,11 +238,20 @@ public class ProjectRepository {
      * @return the project leader with specified employee_id
      */
     public Employee findProjectLeaderByEmployeeId(Long employeeId) {
-        return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM project_leader WHERE employee_id = :employee_id",
-                new MapSqlParameterSource("employee_id", employeeId),
-                this.employeeRowMapper
-        );
+        Employee foundEmployee = null;
+        try {
+            foundEmployee = this.namedParameterJdbcTemplate.queryForObject(
+                    "SELECT * FROM project_leader " +
+                            "INNER JOIN employee_project_leader epl on project_leader.leader_id = epl.leader_id " +
+                            "INNER JOIN employees e on epl.employee_id = e.employee_id " +
+                            "WHERE e.employee_id = :employee_id",
+                    new MapSqlParameterSource("employee_id", employeeId),
+                    this.employeeRowMapper
+            );
+        } catch (Exception e) {
+            System.err.println("Toodeli doo");
+        }
+        return foundEmployee;
     }
 
     /**
@@ -236,7 +263,7 @@ public class ProjectRepository {
                         "VALUES (:project_id, " +
                         "       (SELECT pl.leader_id " +
                         "           FROM project_leader pl " +
-                        "           INNER JOIN employee_project_leader epl ON epl.employee_id = pl.leader_id " +
+                        "           INNER JOIN employee_project_leader epl ON epl.leader_id = pl.leader_id " +
                         "           INNER JOIN employees e ON e.employee_id = epl.employee_id " +
                         "           WHERE e.employee_id = :employee_id " +
                         "       )" +
@@ -255,17 +282,24 @@ public class ProjectRepository {
      *         project leader in the specified project
      */
     public Employee findProjectLeaderInProject(Long employee_id, Long project_id) {
-        return this.namedParameterJdbcTemplate.queryForObject(
-                "SELECT * FROM employees " +
-                        "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
-                        "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
-                        "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
-                        "WHERE epl.employee_id = :employee_id AND ppl.project_id = :project_id",
-                new MapSqlParameterSource()
-                        .addValue("project_id", project_id)
-                        .addValue("employee_id", employee_id),
-                this.employeeRowMapper
-        );
+        Employee foundEmployee = null;
+        try {
+            foundEmployee = this.namedParameterJdbcTemplate.queryForObject(
+                    "SELECT * FROM employees " +
+                            "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
+                            "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
+                            "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
+                            "INNER JOIN projects p ON ppl.project_id = p.project_id " +
+                            "WHERE epl.employee_id = :employee_id AND ppl.project_id = :project_id",
+                    new MapSqlParameterSource()
+                            .addValue("project_id", project_id)
+                            .addValue("employee_id", employee_id),
+                    this.employeeRowMapper
+            );
+        } catch (Exception e) {
+            System.err.println("Heisann på deisann");
+        }
+        return foundEmployee;
     }
 
     /**

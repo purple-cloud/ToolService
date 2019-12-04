@@ -85,4 +85,13 @@ public class EmployeeController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
+
+	@RequestMapping(value = "/notProjectLeaders/{project_id}", method = RequestMethod.GET)
+	public ResponseEntity<String> getAllEmployeesNotProjectLeadersInProject(@PathVariable Long project_id) {
+		try {
+			return new ResponseEntity<>(this.mapper.writeValueAsString(repository.findEmployeesNotProjectLeaderInProject(project_id)), OK);
+		} catch (Exception e) {
+			return new ResponseEntity<>(e.getMessage(), BAD_REQUEST);
+		}
+	}
 }

@@ -151,4 +151,26 @@ public class EmployeeRepository {
 
 		return this.jdbc.query(sql, new Object[]{projectId, employeeSearch}, mapper);
 	}
+
+	public List<Employee> findEmployeesNotProjectLeaderInProject(Long project_id) {
+		return this.namedParameterJdbcTemplate.query(
+				"SELECT * FROM employees e\n" +
+						"WHERE e.employee_id NOT IN (\n" +
+						"\tSELECT e.employee_id FROM employees e\n" +
+						"    INNER JOIN employee_project_leader epl on e.employee_id = epl.employee_id\n" +
+						"    INNER JOIN project_leader pl on epl.leader_id = pl.leader_id\n" +
+						"    INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id\n" +
+						"    INNER JOIN projects p on ppl.project_id = p.project_id\n" +
+						"    WHERE p.project_id = :project_id\n" +
+						")\n" +
+						"OR e.employee_id NOT IN (\n" +
+						"\tSELECT e.employee_id FROM employees e\n" +
+						"    INNER JOIN employee_project_leader epl on e.employee_id = epl.employee_id\n" +
+						")\n" +
+						"GROUP BY e.employee_id\n" +
+						"ORDER BY e.employee_id ASC",
+				new MapSqlParameterSource("project_id", project_id),
+				this.mapper
+		);
+	}
 }
