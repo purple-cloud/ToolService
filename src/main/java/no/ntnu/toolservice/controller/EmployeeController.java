@@ -77,10 +77,9 @@ public class EmployeeController {
 	 * @see no.ntnu.toolservice.repository.EmployeeRepository
 	 */
 	@RequestMapping(value = "/project/nonmembers/{project-id}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity getAllEmployeesNotInProject(@PathVariable("project-id") long projectId,
-	                                                  @RequestParam("search") String employeeSearch) {
+	public ResponseEntity getAllEmployeesNotInProject(@PathVariable("project-id") long projectId) {
 		try {
-			return ResponseEntity.ok(repository.findEmployeesNotInProject(projectId, employeeSearch));
+			return ResponseEntity.ok(repository.findEmployeesNotInProject(projectId));
 		} catch (Exception e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		}

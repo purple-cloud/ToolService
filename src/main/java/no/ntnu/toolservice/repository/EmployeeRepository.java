@@ -50,7 +50,7 @@ public class EmployeeRepository {
 	public int addEmployee(Employee e) {
 		// Return the id of employee
 		return jdbc.update(INSERT_EMP, e.getName(), e.getEmail(), e.getUsername(), e.getPassword(),
-				String.valueOf(e.getPhone()));
+				String.valueOf(e.getPhone()), "");
 	}
 
 	public int addEmployee(String name, String username, String email, String password, int phone, String image) {
@@ -138,18 +138,16 @@ public class EmployeeRepository {
 	 * to.
 	 *
 	 * @param projectId         identity of project to search in
-	 * @param employeeSearch    full (or a subset of) user name
 	 * @return                  a list of employees not in a project
 	 */
-	public List<Employee> findEmployeesNotInProject(long projectId, String employeeSearch) {
+	public List<Employee> findEmployeesNotInProject(long projectId) {
 		String sql = "SELECT e.employee_id, name, email, username, password, phone, e.image, date_created FROM employees e " +
 					"    INNER JOIN project_employees pe on e.employee_id = pe.employee_id " +
 					"    WHERE e.employee_id NOT IN (SELECT employee_id FROM project_employees WHERE project_id = ?) " +
-					"    AND LOWER(e.name) LIKE CONCAT('%', LOWER(?), '') " +
 					"    GROUP BY e.employee_id " +
 					"    ORDER BY e.employee_id DESC";
 
-		return this.jdbc.query(sql, new Object[]{projectId, employeeSearch}, mapper);
+		return this.jdbc.query(sql, new Object[]{projectId}, mapper);
 	}
 
 	public List<Employee> findEmployeesNotProjectLeaderInProject(Long project_id) {
