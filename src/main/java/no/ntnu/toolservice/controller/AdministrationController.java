@@ -166,25 +166,7 @@ public class AdministrationController {
     Admin relevant endpoints
     ----------------------------*/
 
-    /*
-    @RequestMapping(value = "/addNewProject", method = RequestMethod.POST)
-    public ResponseEntity<String> addNewProject(HttpEntity<String> httpEntity) {
-        String body = httpEntity.getBody();
-        if (body != null) {
-            JSONObject jsonObject = new JSONObject(body);
-            return this.projectService.addNewProject(new Project(
-                    jsonObject.getString("name"),
-                    jsonObject.getString("desc"),
-                    jsonObject.getString("location"),
-                    // TODO Get actual image from byte[]
-                    jsonObject.getString("image")
-            ));
-        } else {
-            return new ResponseEntity<>("Body is null", HttpStatus.BAD_REQUEST);
-        }
-    }*/
-
-    @RequestMapping(value = "/addNewProject", method = RequestMethod.POST, consumes = "multipart/form-data")
+    @RequestMapping(value = "/projects", method = RequestMethod.POST, consumes = "multipart/form-data")
     public ResponseEntity addNewProject(@RequestParam String name,
                                         @RequestParam String desc,
                                         @RequestParam String location,
@@ -205,9 +187,11 @@ public class AdministrationController {
 
         // Add to database
         long projectId = this.projectRepository.addProjectAndGetId(p);
-        this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
 
-        return ResponseEntity.ok(new HashMap<String, Object>() {{put("project_id", projectId);}});
+        //TODO Uncomment line once the query inside the repository method works
+        //this.projectRepository.addProjectLeaderToProject(projectId, Long.getLong(employee_id));
+
+        return ResponseEntity.ok(this.projectRepository.findProjectById(projectId));
     }
 
     @RequestMapping(value = "/addNewProjectLeader/{id}", method = RequestMethod.POST)
