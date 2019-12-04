@@ -276,11 +276,12 @@ public class ProjectRepository {
      */
     public List<Employee> findAllProjectLeadersInProjectByProjectId(Long project_id) {
         return this.namedParameterJdbcTemplate.query(
-                "SELECT * FROM employees " +
-                        "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
-                        "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
-                        "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
-                        "WHERE ppl.project_id = :project_id",
+                "SELECT * FROM employees\n" +
+                        "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id\n" +
+                        "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id\n" +
+                        "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id\n" +
+                        "INNER JOIN projects p ON ppl.project_id = p.project_id\n" +
+                        "WHERE p.project_id = :project_id",
                 new MapSqlParameterSource("project_id", project_id),
                 this.employeeRowMapper
         );
@@ -292,6 +293,7 @@ public class ProjectRepository {
                         "INNER JOIN employee_project_leader epl on employees.employee_id = epl.employee_id " +
                         "INNER JOIN project_leader pl on epl.leader_id = pl.leader_id " +
                         "INNER JOIN project_project_leader ppl on epl.leader_id = ppl.leader_id " +
+                        "INNER JOIN projects p ON ppl.project_id = p.project_id " +
                         "WHERE ppl.project_id = :project_id " +
                         "AND LOWER(employees.name) LIKE CONCAT('%', LOWER(:search), '%')",
                 new MapSqlParameterSource()
